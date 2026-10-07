@@ -1,9 +1,11 @@
 package com.anonymous.subcapture
 
+import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.projection.MediaProjectionConfig
 import android.media.projection.MediaProjectionManager
@@ -22,6 +24,10 @@ import androidx.compose.runtime.getValue
 class MainActivity : ComponentActivity() {
     private val projectionConsentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult(), ::startOverlayIfGranted)
+
+    // Without this permission Android drops the service's toasts while another app is in front
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { launchProjectionConsent() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +53,14 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             return
         }
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
+        }
+        launchProjectionConsent()
+    }
+
+    private fun launchProjectionConsent() {
         val wholeScreenConfig = MediaProjectionConfig.createConfigForDefaultDisplay()
         val projectionManager = getSystemService(MediaProjectionManager::class.java)
         projectionConsentLauncher.launch(projectionManager.createScreenCaptureIntent(wholeScreenConfig))

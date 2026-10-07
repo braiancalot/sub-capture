@@ -32,7 +32,7 @@ Kotlin files live in `app/src/main/java/com/anonymous/subcapture/`, tests in
 Data flow:
 
 1. The user taps "Iniciar Captura". `MainActivity` sends them to the overlay permission screen if
-   it is missing, otherwise launches Android's `MediaProjection` consent dialog, forced to the
+   it is missing, asks for the notification permission if it is missing, then launches Android's `MediaProjection` consent dialog, forced to the
    whole screen with `MediaProjectionConfig.createConfigForDefaultDisplay()`.
 2. Once granted, `OverlayService` starts as a foreground service with the consent result in its
    intent, builds the `ScreenFrameGrabber` and shows the floating draggable button.
@@ -109,7 +109,9 @@ First-run permissions on the device:
 
 1. **Draw over other apps** (`SYSTEM_ALERT_WINDOW`): "Iniciar Captura" opens the settings screen
    when it is missing. Grant it, go back and tap again.
-2. **Screen capture**: requested by tapping "Iniciar Captura".
+2. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
+   does not block the capture, it only hides the toasts and the service notification.
+3. **Screen capture**: requested by tapping "Iniciar Captura".
 
 There is no deployment. The app is installed straight onto the user's device; see Releases & Tags
 for versioned builds.
@@ -238,6 +240,10 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
 - **Screen capture consent is single use.** It is spent when `OverlayService` starts and is gone
   when the service stops, the process dies or the user ends sharing from the system UI. The user
   has to tap "Iniciar Captura" again. Not a crash.
+- **Toasts from `OverlayService` need the notification permission.** Android silently drops toasts
+  from an app that is not in front when its notifications are blocked, and during a capture the
+  video app is in front. Seen on-device: no "Nenhuma legenda encontrada" toast until
+  `POST_NOTIFICATIONS` was declared and requested.
 - **Pausing/resuming the target video** happens via a broadcast intent aimed at VLC's package. It
   silently does nothing for other video apps.
 - **The overlay button position persists** in `SharedPreferences` (`overlay_prefs`) across app
