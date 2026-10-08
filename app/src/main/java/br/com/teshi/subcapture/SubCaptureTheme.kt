@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme

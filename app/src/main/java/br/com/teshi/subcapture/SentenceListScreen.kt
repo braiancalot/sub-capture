@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

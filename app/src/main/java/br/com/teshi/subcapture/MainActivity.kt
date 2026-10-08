@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import android.Manifest
 import android.app.Activity

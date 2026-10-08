@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.anonymous.subcapture"
+    namespace = "br.com.teshi.subcapture"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.anonymous.subcapture"
+        applicationId = "br.com.teshi.subcapture"
         minSdk = 34
         targetSdk = 36
         versionCode = 1

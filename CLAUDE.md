@@ -13,8 +13,8 @@ Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). `MediaProjectio
 `WindowManager` overlay run from a foreground service. `minSdk` is 34, so there are no
 `Build.VERSION` branches. `v0.1.0` is the last React Native version, kept as a rollback point.
 
-Kotlin files live in `app/src/main/java/com/anonymous/subcapture/`, tests in
-`app/src/test/java/com/anonymous/subcapture/`.
+Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
+`app/src/test/java/br/com/teshi/subcapture/`.
 
 | File | Role |
 | --- | --- |
@@ -118,7 +118,7 @@ for versioned builds.
 
 ## Testing
 
-JUnit 4, JVM unit tests only, in `app/src/test/java/com/anonymous/subcapture/`. Run commands are
+JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
 above. Covered: `subtitleFromBlocks`, the overlay button geometry, the selection copy text and
 `SentenceStore` against a `TemporaryFolder`.
 

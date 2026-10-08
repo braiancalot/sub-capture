@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 fun chronologicalSelectionText(newestFirstSentences: List<String>, selectedIndices: Set<Int>): String =
     selectedIndices.sortedDescending().joinToString("\n") { newestFirstSentences[it] }

@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint

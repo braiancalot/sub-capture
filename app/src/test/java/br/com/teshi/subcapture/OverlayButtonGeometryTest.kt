@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

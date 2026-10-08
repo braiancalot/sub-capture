@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import android.graphics.Bitmap
 import com.google.mlkit.vision.common.InputImage

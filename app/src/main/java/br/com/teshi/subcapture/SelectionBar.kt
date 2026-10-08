@@ -1,4 +1,4 @@
-package com.anonymous.subcapture
+package br.com.teshi.subcapture
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
