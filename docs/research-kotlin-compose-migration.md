@@ -8,7 +8,7 @@ version is tagged `v0.1.0`.
 | Topic | Chosen | Rejected, and why |
 | --- | --- | --- |
 | Project layout | Gradle project at the repo root, Kotlin DSL, version catalog | Keeping the `android/` subfolder: it only existed because of React Native. |
-| Toolchain | AGP 8.11.0 (8.13.2 since 2026-10-07), Kotlin 2.1.20, Gradle 8.14.3, compileSdk 36 | Newer versions: these were already building on the machine under React Native 0.81. |
+| Toolchain | AGP 8.11.0, Kotlin 2.1.20, Gradle 8.14.3, compileSdk 36 (superseded on 2026-10-07, see below) | Newer versions: these were already building on the machine under React Native 0.81. |
 | `minSdk` | 34 | 26: keeps `Build.VERSION` branches alive for nothing. 36: no API from 35 or 36 is used. The only device runs Android 16. |
 | `applicationId` and signing | `com.anonymous.subcapture`, same tracked `app/debug.keystore` (id superseded on 2026-10-07, see below) | A new id: installs as a second app and loses the saved list. |
 | Persistence | Same `filesDir/sentences.txt`, JSON array of strings, via `kotlinx-serialization-json` | `org.json`: stubbed in JVM unit tests. Room or DataStore: a migration and a schema for one list of strings. |
@@ -27,6 +27,10 @@ version is tagged `v0.1.0`.
 - **`applicationId` and package (2026-10-07):** now `br.com.teshi.subcapture`, the reversed form of
   a domain the user owns. `com.anonymous` was the Expo placeholder. The saved list was empty and a
   reinstall was already needed for the release keystore, so the reason to keep the old id was gone.
+- **Toolchain (2026-10-07):** AGP 9.4.1, Gradle 9.6.0 (the minimum AGP 9.4 accepts), Kotlin 2.2.10
+  (the version AGP 9.4.1 depends on). AGP 9 compiles Kotlin itself, so the
+  `org.jetbrains.kotlin.android` plugin was removed; the Compose compiler plugin stays and MUST
+  match the Kotlin version.
 
 ## Open
 
