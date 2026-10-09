@@ -22,7 +22,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, tap to copy, long-press multi-select, delete. Selection state lives in the composable. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service. |
-| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.txt` (same file and format as the React Native version). |
+| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.txt`. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="mediaProjection"`). Lifecycle, notification, VLC pause/resume broadcasts and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
 | `ScreenFrameGrabber.kt` | `MediaProjection` + `VirtualDisplay` + `ImageReader`. Grabs one frame as a `Bitmap`, with a 3s timeout. |
 | `SubtitleRecognizer.kt` | ML Kit call, plus the pure `subtitleFromBlocks` that turns OCR blocks into one line. |
@@ -90,11 +90,12 @@ QA.
 ./gradlew installDebug   # build and install the debug APK on the connected device
 ./gradlew test           # all unit tests
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
+./gradlew :app:lintDebug   # Android Lint, the same warnings Android Studio shows
 adb logcat -s OverlayService   # capture failures, with the concrete reason
 ```
 
-No lint or format command is configured. The debug build is signed with the tracked
-`app/debug.keystore`, the same one the React Native builds used, so it installs over them.
+No format command is configured. The debug build is signed with the tracked
+`app/debug.keystore`.
 
 Environment: Android Studio (or the Android SDK command-line tools, with `JAVA_HOME` pointing at a
 JDK 17 or newer) plus a device or emulator with Google Play services, which ML Kit needs. A
