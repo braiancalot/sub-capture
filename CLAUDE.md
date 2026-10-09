@@ -70,7 +70,7 @@ QA.
    repeatable, self-validating, timely. Mock external I/O (ML Kit) with named fakes, not inline
    stubs. The exception is `SentenceStore`, tested against a real `TemporaryFolder`: a storage
    interface only for the test would be YAGNI.
-4. **Small, logical commits**, each self-contained and functional, and passing CI once CI exists.
+4. **Small, logical commits**, each self-contained and functional, and passing CI.
    Never `git add .`, stage files explicitly. Never mix unrelated responsibilities in one commit.
    Ask before committing.
 5. **Continuous, incremental refactoring**, minutes not hours. The moment a file grows too large or

@@ -41,5 +41,4 @@ version is tagged `v0.1.0`.
 
 ## Open
 
-Nothing here was confirmed on a device at the time of writing. The migration compiles and its unit
-tests pass; capture, overlay and OCR still need the on-device test before `v1.0.0` is tagged.
+Nothing. The migration was tested on the user's device on 2026-10-06 and tagged `v1.0.0`.
