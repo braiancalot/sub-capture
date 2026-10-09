@@ -8,8 +8,5 @@
         android:layout_height="56dp"
         android:background="@drawable/button_background"
         android:elevation="6dp"
-        android:stateListAnimator="@null"
-        android:text="⬤"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp" />
+        android:stateListAnimator="@null" />
 </FrameLayout>
