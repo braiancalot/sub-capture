@@ -10,7 +10,7 @@ class SentenceStoreTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
-    private val sentencesFile: File by lazy { File(temporaryFolder.root, "sentences.txt") }
+    private val sentencesFile: File by lazy { File(temporaryFolder.root, "sentences.json") }
 
     @Test
     fun `starts empty when the file does not exist`() {

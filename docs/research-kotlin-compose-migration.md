@@ -34,6 +34,10 @@ version is tagged `v0.1.0`.
 - **`compileSdk` (2026-10-08):** 37, because Compose BOM 2026.08 and newer refuse to compile against
   36. `targetSdk` stays 36: raising it opts into Android 17 runtime behavior, which no device in
   use runs.
+- **Persisted names (2026-10-08):** the list file is `sentences.json` and the button position lives
+  in the `overlay_button_position` preferences (`button_x`, `button_y`). The React Native names
+  (`sentences.txt`, `overlay_prefs`, `btn_x`, `btn_y`) were dropped without a migration, since no
+  release had shipped and the saved list was disposable.
 
 ## Open
 

@@ -22,7 +22,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, tap to copy, long-press multi-select, delete. Selection state lives in the composable. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service. |
-| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.txt`. |
+| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.json`. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="mediaProjection"`). Lifecycle, notification, VLC pause/resume broadcasts and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
 | `ScreenFrameGrabber.kt` | `MediaProjection` + `VirtualDisplay` + `ImageReader`. Grabs one frame as a `Bitmap`, with a 3s timeout. |
 | `SubtitleRecognizer.kt` | ML Kit call, plus the pure `subtitleFromBlocks` that turns OCR blocks into one line. |
@@ -247,9 +247,9 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   `POST_NOTIFICATIONS` was declared and requested.
 - **Pausing/resuming the target video** happens via a broadcast intent aimed at VLC's package. It
   silently does nothing for other video apps.
-- **The overlay button position persists** in `SharedPreferences` (`overlay_prefs`) across app
-  restarts. If the button seems lost, check it didn't snap off-screen on a device with a different
-  resolution.
+- **The overlay button position persists** in `SharedPreferences` (`overlay_button_position`)
+  across app restarts. If the button seems lost, check it didn't snap off-screen on a device with a
+  different resolution.
 
 ## Knowledge (`docs/`)
 

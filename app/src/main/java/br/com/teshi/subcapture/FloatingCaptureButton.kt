@@ -12,9 +12,9 @@ import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 
-private const val POSITION_PREFS_NAME = "overlay_prefs"
-private const val POSITION_X_KEY = "btn_x"
-private const val POSITION_Y_KEY = "btn_y"
+private const val POSITION_PREFS_NAME = "overlay_button_position"
+private const val POSITION_X_KEY = "button_x"
+private const val POSITION_Y_KEY = "button_y"
 
 @SuppressLint("InflateParams", "ClickableViewAccessibility")
 class FloatingCaptureButton(private val context: Context, private val onTap: () -> Unit) {
