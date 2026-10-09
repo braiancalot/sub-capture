@@ -18,7 +18,7 @@ class SentenceStoreTest {
     }
 
     @Test
-    fun `reads the list saved by the React Native version`() {
+    fun `reads a saved list with escaped quotes`() {
         sentencesFile.writeText("""["newest","say \"hi\""]""")
 
         assertEquals(listOf("newest", "say \"hi\""), SentenceStore(sentencesFile).sentences.value)
