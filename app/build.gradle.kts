@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "br.com.teshi.subcapture"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "br.com.teshi.subcapture"

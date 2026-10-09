@@ -31,6 +31,9 @@ version is tagged `v0.1.0`.
   (the version AGP 9.4.1 depends on). AGP 9 compiles Kotlin itself, so the
   `org.jetbrains.kotlin.android` plugin was removed; the Compose compiler plugin stays and MUST
   match the Kotlin version.
+- **`compileSdk` (2026-10-08):** 37, because Compose BOM 2026.08 and newer refuse to compile against
+  36. `targetSdk` stays 36: raising it opts into Android 17 runtime behavior, which no device in
+  use runs.
 
 ## Open
 
