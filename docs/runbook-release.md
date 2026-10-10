@@ -12,6 +12,10 @@
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
 4. On the phone, open the Release page, download the APK and install it over the previous version.
 
+Google Play Protect blocks the install with a warning, because the APK comes from outside the Play
+Store and asks for screen capture and overlay permissions. Seen on `v1.1.0`. Choose to install
+anyway.
+
 A failed run publishes nothing. Fix the cause, then delete the tag and push it again:
 
 ```bash
