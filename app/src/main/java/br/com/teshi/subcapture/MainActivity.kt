@@ -49,11 +49,6 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             return
         }
-        if (!hasVlcSessionAccess()) {
-            showToast("Permita o acesso a notificações e toque de novo")
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-            return
-        }
         val missingPermissions = runtimePermissions.filter {
             checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
         }

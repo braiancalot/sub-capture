@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-private const val LOG_TAG = "OverlayService"
+const val CAPTURE_LOG_TAG = "OverlayService"
 private const val NOTIFICATION_CHANNEL_ID = "overlay_channel"
 private const val NOTIFICATION_ID = 1
 
@@ -34,7 +34,8 @@ class OverlayService : Service() {
         }
     }
 
-    private val vlcSubtitleCapture = VlcSubtitleCapture(this)
+    private val vlcConnection = VlcConnection(this)
+    private val vlcSubtitleCapture = VlcSubtitleCapture(this, vlcConnection)
     private val captureScope = MainScope()
     private var floatingCaptureButton: FloatingCaptureButton? = null
     private var captureFeedbackBubble: CaptureFeedbackBubble? = null
@@ -47,6 +48,7 @@ class OverlayService : Service() {
         startForeground(NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle).also { it.show() }
         captureFeedbackBubble = CaptureFeedbackBubble(this)
+        vlcConnection.connect()
         runningState.value = true
     }
 
@@ -55,6 +57,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         captureScope.cancel()
+        vlcConnection.disconnect()
         floatingCaptureButton?.remove()
         captureFeedbackBubble?.remove()
         runningState.value = false
@@ -79,7 +82,7 @@ class OverlayService : Service() {
         captureScope.launch {
             try {
                 val capture = vlcSubtitleCapture.subtitleOnScreen()
-                if (isDebuggableBuild) Log.d(LOG_TAG, "capture: $capture")
+                if (isDebuggableBuild) Log.d(CAPTURE_LOG_TAG, "capture: $capture")
                 finishCaptureWithSubtitle(capture.subtitle)
             } catch (failure: SubtitleCaptureFailure) {
                 finishCaptureWithError(failure.userMessage, failure.message.orEmpty())
@@ -99,7 +102,7 @@ class OverlayService : Service() {
 
     private fun finishCaptureWithError(userMessage: String, reason: String) {
         finishCapture()
-        Log.e(LOG_TAG, "capture failed: $reason")
+        Log.e(CAPTURE_LOG_TAG, "capture failed: $reason")
         captureFeedbackBubble?.show(userMessage)
     }
 

@@ -1,35 +1,58 @@
 package br.com.teshi.subcapture
 
-import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.media.MediaMetadata
-import android.media.session.MediaSessionManager
-import android.service.notification.NotificationListenerService
+import android.media.browse.MediaBrowser
+import android.media.session.MediaController
+import android.util.Log
 
-private const val VLC_PACKAGE = "org.videolan.vlc"
-
-// Exists only because Android lists other apps' media sessions solely for an enabled listener
-class VlcSessionListener : NotificationListenerService()
+private val VLC_PLAYBACK_SERVICE = ComponentName("org.videolan.vlc", "org.videolan.vlc.PlaybackService")
 
 data class VlcPlayback(val title: String, val durationMillis: Long, val positionMillis: Long)
 
-private val Context.vlcSessionListener: ComponentName
-    get() = ComponentName(this, VlcSessionListener::class.java)
+class VlcConnection(private val context: Context) {
+    private var mediaBrowser: MediaBrowser? = null
+    private var mediaController: MediaController? = null
 
-fun Context.hasVlcSessionAccess(): Boolean =
-    getSystemService(NotificationManager::class.java).isNotificationListenerAccessGranted(vlcSessionListener)
+    private val connectionCallback = object : MediaBrowser.ConnectionCallback() {
+        override fun onConnected() {
+            mediaController = mediaBrowser?.let { MediaController(context, it.sessionToken) }
+            if (context.isDebuggableBuild) Log.d(CAPTURE_LOG_TAG, "connected to $VLC_PLAYBACK_SERVICE")
+        }
 
-fun Context.currentVlcPlayback(): VlcPlayback? {
-    val vlcSession = getSystemService(MediaSessionManager::class.java)
-        .getActiveSessions(vlcSessionListener)
-        .firstOrNull { it.packageName == VLC_PACKAGE }
-        ?: return null
-    val positionMillis = vlcSession.playbackState?.position ?: return null
-    val metadata = vlcSession.metadata ?: return null
-    return VlcPlayback(
-        title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty(),
-        durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION),
-        positionMillis = positionMillis,
-    )
+        override fun onConnectionSuspended() {
+            mediaController = null
+            Log.e(CAPTURE_LOG_TAG, "connection to $VLC_PLAYBACK_SERVICE suspended, VLC's service stopped")
+        }
+
+        override fun onConnectionFailed() {
+            Log.e(CAPTURE_LOG_TAG, "connection to $VLC_PLAYBACK_SERVICE refused, or VLC is not installed")
+        }
+    }
+
+    val isConnected: Boolean
+        get() = mediaController != null
+
+    fun connect() {
+        disconnect()
+        mediaBrowser = MediaBrowser(context, VLC_PLAYBACK_SERVICE, connectionCallback, null).also { it.connect() }
+    }
+
+    fun disconnect() {
+        mediaBrowser?.disconnect()
+        mediaBrowser = null
+        mediaController = null
+    }
+
+    fun currentPlayback(): VlcPlayback? {
+        val vlcSession = mediaController ?: return null
+        val positionMillis = vlcSession.playbackState?.position ?: return null
+        val metadata = vlcSession.metadata ?: return null
+        return VlcPlayback(
+            title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty(),
+            durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION),
+            positionMillis = positionMillis,
+        )
+    }
 }

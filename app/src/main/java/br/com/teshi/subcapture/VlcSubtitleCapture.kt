@@ -9,7 +9,7 @@ class SubtitleCaptureFailure(val userMessage: String, reason: String) : Exceptio
 
 data class SubtitleCapture(val subtitle: String?, val positionMillis: Long, val fileName: String)
 
-class VlcSubtitleCapture(private val context: Context) {
+class VlcSubtitleCapture(private val context: Context, private val vlcConnection: VlcConnection) {
     private var cachedVideoFile: VideoFileEntry? = null
     private var cachedCues: List<SubtitleCue> = emptyList()
 
@@ -23,13 +23,14 @@ class VlcSubtitleCapture(private val context: Context) {
     }
 
     private fun readPlayback(): VlcPlayback {
-        val playback = try {
-            context.currentVlcPlayback()
-        } catch (error: SecurityException) {
-            throw SubtitleCaptureFailure("Permita o acesso a notificações", "notification access not granted: $error")
+        if (!vlcConnection.isConnected) {
+            vlcConnection.connect()
+            throw SubtitleCaptureFailure(
+                "Nenhum vídeo aberto no VLC", "not connected to VLC's PlaybackService, connecting again"
+            )
         }
-        return playback ?: throw SubtitleCaptureFailure(
-            "Nenhum vídeo aberto no VLC", "no active VLC media session with a position and metadata"
+        return vlcConnection.currentPlayback() ?: throw SubtitleCaptureFailure(
+            "Nenhum vídeo aberto no VLC", "VLC's media session has no playback state or no metadata"
         )
     }
 
