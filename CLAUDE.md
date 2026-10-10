@@ -71,8 +71,9 @@ QA.
    diagnosis, trade-offs and questions, not a patch.
 2. **Never run the app or verify a capture yourself.** Overlay behavior, what VLC reports and
    whether the captured line matches the screen can only be judged by the user on their own device
-   against a real video. Ask them to test and report back, or to paste the
-   `adb logcat -s OverlayService` output, rather than claiming a capture works. Builds are the
+   against a real video. Ask them to test and report back, then read the log
+   yourself with `adb logcat -d -s OverlayService` (or ask them to paste it when the phone is not
+   connected), rather than claiming a capture works. Builds are the
    user's too: they install onto the user's device.
    Individual test files you may run, and should, to check your own work; the full suite is the
    user's.
@@ -100,6 +101,9 @@ QA.
 ## Running the Project
 
 ```bash
+bin/dev                  # connect over Wi-Fi, install the debug build, open it and follow its log
+bin/connect              # only connect adb to the phone over Wi-Fi
+bin/check                # all unit tests plus lint, to run before a push
 ./gradlew installDebug   # build and install the debug APK on the connected device
 ./gradlew test           # all unit tests
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
@@ -122,9 +126,13 @@ JDK 17 or newer) plus a device with VLC and a local `.mkv` to play. A physical d
 preferred, since overlays, foreground services and media sessions behave differently on the
 emulator.
 
+The `bin/` scripts are PowerShell (`bin/dev.ps1`), run from the repository root.
+
 To install without a cable, pair once over Wi-Fi: `adb pair <ip>:<port>` (shown in Settings >
-Developer options > Wireless debugging), then `adb connect <ip>:<port>`. After that the install
-commands go over Wi-Fi.
+Developer options > Wireless debugging). After that, turn wireless debugging on and run
+`bin/connect`: the port changes on every toggle, so the script scans the phone for it instead of
+asking for it. adb's own mDNS discovery finds nothing on this machine. The phone's address
+defaults to `192.168.1.5`; pass `-Address` when it changes.
 
 First-run permissions on the device:
 
