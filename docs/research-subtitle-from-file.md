@@ -1,7 +1,8 @@
 # Research: reading the subtitle from the file instead of OCR
 
 Status: built and accepted on the device on 2026-10-10. It replaced OCR, which was removed in
-`v2.0.0`.
+`v2.0.0`. Since `v2.1.0` the session is reached through VLC's media browser service instead of
+`getActiveSessions`, see "An alternative to the notification listener".
 
 ## Idea
 
@@ -127,7 +128,8 @@ loosely timed.
 
 ## An alternative to the notification listener
 
-Status: read from VLC's source on 2026-10-10, never run.
+Status: built and accepted on the device on 2026-10-10, with the debug build. It replaced the
+listener in `v2.1.0`.
 
 The `NotificationListenerService` that `getActiveSessions` requires has two costs, both seen with
 the `v2.0.0` release build: Play Protect in Brazil refuses to install the downloaded APK, and
@@ -137,15 +139,40 @@ VLC's `PlaybackService` is an exported `MediaBrowserService`, the one Android Au
 the `master` source its `onGetRoot` accepts any caller: it logs the client and only returns null
 when VLC itself lacks storage permission. An app can therefore connect with
 `MediaBrowser(context, ComponentName("org.videolan.vlc", "org.videolan.vlc.PlaybackService"), ...)`,
-take `sessionToken` from the connection and build a `MediaController` on it. That controller should
-expose the same playback state and metadata with no special access, and its `onMetadataChanged`
-callback reports when the video changes.
+take `sessionToken` from the connection and build a `MediaController` on it. The manifest needs a
+`<queries>` entry for `org.videolan.vlc`.
+
+Measured on the device, with notification access revoked:
+
+- The connection is accepted within a second of starting the capture service, with or without a
+  video open.
+- The position is as exact as through the listener: between two taps it advanced 1.469 s against
+  1.470 s of wall clock, and 1.796 s against 1.795 s.
+- When VLC's service stops, the connection is suspended. The next tap fails, reconnects in about
+  0.2 s, and the tap after that works.
+- On a change of video `onMetadataChanged` fires first with the new title and a zero duration, then
+  again with the real one. A lookup by that zero duration matched a 0.4 s WhatsApp clip, so a
+  playback with no duration is treated as no video yet.
+
+Not checked: whether the release APK without the listener installs from the phone, past Play
+Protect.
 
 ## Slow first capture on the device
 
-The first capture of an episode takes about 5 seconds on the phone, against 0.13 s on the PC for
-the same file. That is when the whole file is read; the cues then stay in memory. The likely cause
-is the cost of many small reads through Android's storage layer, not measured yet.
+With `v2.0.0` the first capture of an episode took about 5 seconds on the phone, against 0.13 s on
+the PC for the same file. That is when the whole file is read; the cues then stay in memory.
+
+`v2.1.0` reads the file when VLC changes video instead of on the first tap, and logs the reading
+time in the debug build. Eight reads on the phone:
+
+| File | Cues | Reading time |
+| --- | --- | --- |
+| One Pace 804-805 | 328 | 0.23, 0.29, 0.37 and 0.52 s |
+| One Pace 801-803 | 1364 | 0.48 s |
+| Modern Family S06E13 | 657 | 0.44, 1.10 and 1.19 s |
+
+The 5 seconds did not show up again and their cause was never measured. With the preload a read of
+about a second is over before the user can tap, so the reader was not optimized.
 
 ## Open
 

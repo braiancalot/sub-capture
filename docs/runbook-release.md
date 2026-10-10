@@ -14,15 +14,17 @@
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
 5. On the phone, open the Release page, download the APK and install it over the previous version.
 
-Since `v2.0.0` the APK cannot be installed by opening it on the phone: Play Protect blocks it
-outright ("O app foi bloqueado para proteger seu dispositivo"), because it declares a notification
-listener. Download it on the PC and install over adb instead:
+The `v2.0.0` APK could not be installed by opening it on the phone: Play Protect blocked it
+outright ("O app foi bloqueado para proteger seu dispositivo"), because it declared a notification
+listener. `v2.1.0` dropped the listener, but no APK without it has been installed from the phone
+yet. If the block is still there, download the APK on the PC and install over adb instead:
 
 ```bash
 adb install -r SubCapture-v1.2.0.apk
 ```
 
-Then grant notification access, which Android also restricts for this build:
+`v2.0.0` also needed notification access, which Android restricts for a release build. Only for
+that version:
 
 ```bash
 adb shell cmd notification allow_listener br.com.teshi.subcapture/br.com.teshi.subcapture.VlcSessionListener

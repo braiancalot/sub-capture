@@ -9,8 +9,8 @@ subtitle track inside the video file and adds it to a list. From the list, tap o
 or long-press to multi-select and copy several as newline-separated text. Android only. It works
 for local `.mkv` files with a text subtitle track (SubRip or ASS).
 
-Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). VLC's media session, read through
-a notification listener, for the playback position; `MediaStore` to find the file; a small Matroska
+Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). VLC's media session, reached
+through its media browser service, for the playback position; `MediaStore` to find the file; a small Matroska
 reader for the subtitle track; a `WindowManager` overlay run from a foreground service. `minSdk` is
 34, so there are no `Build.VERSION` branches. `v0.1.0` is the last React Native version and
 `v1.1.1` the last one that used screen capture and OCR, both kept as rollback points.
@@ -20,14 +20,14 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 
 | File | Role |
 | --- | --- |
-| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay permission, notification access and the runtime permissions, starts and stops `OverlayService`, copies to the clipboard. |
+| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay permission and the runtime permissions, starts and stops `OverlayService`, copies to the clipboard. |
 | `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, tap to copy, long-press multi-select, delete. Selection state lives in the composable. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files. |
 | `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.json`. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
-| `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file), line. Turns each failure into a `SubtitleCaptureFailure` carrying the toast text and the log reason. |
-| `VlcPlayback.kt` | Reads title, duration and position from VLC's media session. Holds the empty `NotificationListenerService` that this access depends on. |
+| `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file, preloaded when VLC changes video), line. Turns each failure into a `SubtitleCaptureFailure` carrying the toast text and the log reason. |
+| `VlcPlayback.kt` | Connects to VLC's `MediaBrowserService`, reads title, duration and position from its media session and reports when VLC changes video. |
 | `EpisodeLibrary.kt` | `MediaStore` query by duration, and opening a file for the reader. |
 | `EpisodeFileMatch.kt` | Pure choice among files of the same duration, by words shared with the title. |
 | `MatroskaSubtitleReader.kt` | Pure reader of the first text subtitle track of an `.mkv`. |
@@ -40,15 +40,16 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 Data flow:
 
 1. The user taps "Iniciar Captura". `MainActivity` sends them to the overlay permission screen if
-   it is missing, then to the notification access screen if that is missing, asks for the
-   notification and video permissions if missing, then starts `OverlayService`.
-2. `OverlayService` starts as a foreground service and shows the floating draggable button.
+   it is missing, asks for the notification and video permissions if missing, then starts
+   `OverlayService`.
+2. `OverlayService` starts as a foreground service, shows the floating draggable button and
+   connects to VLC. Each time VLC changes video it reads that file's cues ahead of the first tap.
 3. The user taps the floating button (a drag of 10px or more counts as repositioning, not a tap).
    The service reads VLC's title, duration and position from its media session. Playback is not
    paused.
 4. It finds the file in `MediaStore` by duration (within 1s), using the title to choose among
    several, and reads the cues of its first text subtitle track. The cues of the last file stay in
-   memory, so only the first capture of an episode reads the file.
+   memory, so a tap reads the file only when the preload has not done it.
 5. The line on screen at that position is prepended to `SentenceStore`, which persists it, and
    shown in a bubble over the video so the user can check it against the screen. Lines on screen
    together are joined with " / ". With none on screen it takes a line starting within 500ms, else
@@ -56,7 +57,8 @@ Data flow:
 6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
-the user in the same bubble. The debug build also logs each capture's position, file and line there.
+the user in the same bubble. The debug build also logs each capture's position, file and line there, plus the connection to VLC
+and how long each file took to read.
 
 ## Working Methodology
 
@@ -129,13 +131,9 @@ First-run permissions on the device:
 
 1. **Draw over other apps** (`SYSTEM_ALERT_WINDOW`): "Iniciar Captura" opens the settings screen
    when it is missing. Grant it, go back and tap again.
-2. **Notification access** (a special access screen, not a dialog): "Iniciar Captura" opens it
-   when missing. It is how the app reads VLC's position; the app reads no notifications. Grant it,
-   go back and tap again. For the debug build it can be granted from the PC:
-   `adb shell cmd notification allow_listener br.com.teshi.subcapture.debug/br.com.teshi.subcapture.VlcSessionListener`
-3. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
+2. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
    does not block the capture, it only hides the service notification.
-4. **Videos** (`READ_MEDIA_VIDEO`): requested by "Iniciar Captura" when missing. Choose "Allow all".
+3. **Videos** (`READ_MEDIA_VIDEO`): requested by "Iniciar Captura" when missing. Choose "Allow all".
 
 There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
 installed by hand.
@@ -283,17 +281,14 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   may return another language than the one on screen.
 - **Video access must be "Allow all".** With "Select photos and videos" `MediaStore` hides the
   episodes and every capture ends in "Arquivo do vídeo não encontrado".
-- **The release APK cannot be installed from the phone.** In Brazil, Play Protect's fraud
-  protection blocks a downloaded APK that declares a notification listener, with no "install
-  anyway" button. Seen with `v2.0.0`. Download the APK on the PC and run `adb install -r` on it.
-- **Notification access is a restricted setting on the release build**, even when installed with
-  `adb`. Seen with `v2.0.0`. Grant it with `adb shell cmd notification allow_listener
-  br.com.teshi.subcapture/br.com.teshi.subcapture.VlcSessionListener`, or on the phone: the app's
-  info screen, the three-dot menu, "Allow restricted settings". The debug build was not affected.
-- **The first capture of an episode takes about 5 seconds on the device**, because that is when the
-  whole file is read. Later captures of the same episode are instant.
-- Both install obstacles come from the notification listener. `docs/research-subtitle-from-file.md`
-  describes an untested way to read VLC's position without it.
+- **The `v2.0.0` release APK could not be installed from the phone.** In Brazil, Play Protect's
+  fraud protection blocks a downloaded APK that declares a notification listener, with no "install
+  anyway" button. `v2.1.0` dropped the listener, but whether the block went with it is unconfirmed
+  until a release APK is installed from the phone. The way around is `adb install -r` from the PC.
+- **A tap right after VLC was closed fails once.** The connection to VLC is suspended when its
+  service stops. That tap says "Nenhum vídeo aberto no VLC" and reconnects, the next one works.
+- **VLC announces a new video with a zero duration first.** A playback without a duration MUST be
+  treated as no video yet, or the lookup by duration matches any clip shorter than a second.
 - **Toasts are unreliable from `OverlayService`.** Android rate-limits and queues toasts from an
   app that is not in front: seen on-device, most capture toasts never appeared. Feedback during a
   capture goes through `CaptureFeedbackBubble` instead.

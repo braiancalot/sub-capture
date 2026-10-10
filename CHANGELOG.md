@@ -5,6 +5,15 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.1.0] - 2026-10-10
+
+### Changed
+
+- "Iniciar Captura" no longer asks for notification access. The app now talks to VLC directly, so
+  that permission is gone and can be revoked in the phone's settings if it was granted before.
+- The subtitles of an episode are loaded as soon as VLC opens it, so the first tap no longer waits
+  for the file to be read.
+
 ## [2.0.0] - 2026-10-10
 
 ### Changed
