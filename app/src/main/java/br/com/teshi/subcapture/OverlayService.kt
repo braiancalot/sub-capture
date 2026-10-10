@@ -65,12 +65,14 @@ class OverlayService : Service() {
 
     private fun buildNotification(): Notification {
         val channel = NotificationChannel(
-            NOTIFICATION_CHANNEL_ID, "SubCapture Overlay", NotificationManager.IMPORTANCE_LOW
+            NOTIFICATION_CHANNEL_ID,
+            getString(R.string.service_notification_channel),
+            NotificationManager.IMPORTANCE_LOW,
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         return Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("SubCapture")
-            .setContentText("Toque no botão flutuante para capturar legendas")
+            .setContentText(getString(R.string.service_notification_text))
             .setSmallIcon(R.drawable.subcapture_mark)
             .build()
     }
@@ -95,7 +97,7 @@ class OverlayService : Service() {
                 if (isDebuggableBuild) Log.d(CAPTURE_LOG_TAG, "capture: $capture")
                 finishCaptureWithSubtitle(capture.subtitle)
             } catch (failure: SubtitleCaptureFailure) {
-                finishCaptureWithError(failure.userMessage, failure.message.orEmpty())
+                finishCaptureWithError(getString(failure.userMessageId), failure.message.orEmpty())
             }
         }
     }
@@ -103,7 +105,7 @@ class OverlayService : Service() {
     private fun finishCaptureWithSubtitle(subtitle: String?) {
         finishCapture()
         if (subtitle == null) {
-            captureFeedbackBubble?.show("Nenhuma legenda neste ponto")
+            captureFeedbackBubble?.show(getString(R.string.capture_no_subtitle_at_position))
             return
         }
         sentenceStore.prepend(subtitle)

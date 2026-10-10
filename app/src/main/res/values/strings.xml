@@ -1,3 +1,16 @@
 <resources>
-  <string name="app_name">SubCapture</string>
+  <string name="app_name" translatable="false">SubCapture</string>
+  <string name="start_capture">Start Capture</string>
+  <string name="stop_capture">Stop Capture</string>
+  <string name="empty_sentence_list">No subtitles captured yet.</string>
+  <string name="selection_cancel">Cancel</string>
+  <string name="selection_select_all">All</string>
+  <string name="selection_copy_count">Copy %1$d</string>
+  <string name="overlay_permission_needed">Allow display over other apps, then tap again</string>
+  <string name="capture_no_subtitle_at_position">No subtitle at this point</string>
+  <string name="capture_no_video_in_vlc">No video open in VLC</string>
+  <string name="capture_video_file_not_found">Video file not found</string>
+  <string name="capture_no_text_subtitles">Video has no text subtitles</string>
+  <string name="service_notification_text">Tap the floating button to capture subtitles</string>
+  <string name="service_notification_channel">Capture overlay</string>
 </resources>

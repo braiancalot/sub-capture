@@ -2,6 +2,7 @@ package br.com.teshi.subcapture
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.StringRes
 import java.io.IOException
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +10,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-class SubtitleCaptureFailure(val userMessage: String, reason: String) : Exception(reason)
+class SubtitleCaptureFailure(@StringRes val userMessageId: Int, reason: String) : Exception(reason)
 
 data class SubtitleCapture(val subtitle: String?, val positionMillis: Long, val fileName: String)
 
@@ -42,18 +43,19 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
         if (!vlcConnection.isConnected) {
             vlcConnection.connect()
             throw SubtitleCaptureFailure(
-                "Nenhum vídeo aberto no VLC", "not connected to VLC's PlaybackService, connecting again"
+                R.string.capture_no_video_in_vlc, "not connected to VLC's PlaybackService, connecting again"
             )
         }
         return vlcConnection.currentPlayback() ?: throw SubtitleCaptureFailure(
-            "Nenhum vídeo aberto no VLC", "VLC's media session is stopped, or has no playback state, no metadata or no duration yet"
+            R.string.capture_no_video_in_vlc,
+            "VLC's media session is stopped, or has no playback state, no metadata or no duration yet"
         )
     }
 
     private fun findVideoFile(playback: VlcPlayback): VideoFileEntry {
         val candidates = context.videoFilesLasting(playback.durationMillis)
         return pickEpisodeFile(candidates, playback.title) ?: throw SubtitleCaptureFailure(
-            "Arquivo do vídeo não encontrado",
+            R.string.capture_video_file_not_found,
             "no MediaStore video lasting ${playback.durationMillis}ms (within 1s) for \"${playback.title}\""
         )
     }
@@ -63,7 +65,9 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
         val (cues, readingTime) = try {
             measureTimedValue { context.readSubtitleCuesOf(videoFile) }
         } catch (error: IOException) {
-            throw SubtitleCaptureFailure("Vídeo sem legenda em texto", "${videoFile.displayName}: ${error.message}")
+            throw SubtitleCaptureFailure(
+                R.string.capture_no_text_subtitles, "${videoFile.displayName}: ${error.message}"
+            )
         }
         if (context.isDebuggableBuild) {
             Log.d(CAPTURE_LOG_TAG, "read ${cues.size} cues of ${videoFile.displayName} in $readingTime")

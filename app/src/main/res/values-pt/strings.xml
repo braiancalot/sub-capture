@@ -1,0 +1,15 @@
+<resources>
+  <string name="start_capture">Iniciar Captura</string>
+  <string name="stop_capture">Parar Captura</string>
+  <string name="empty_sentence_list">Nenhuma legenda capturada ainda.</string>
+  <string name="selection_cancel">Cancelar</string>
+  <string name="selection_select_all">Tudo</string>
+  <string name="selection_copy_count">Copiar %1$d</string>
+  <string name="overlay_permission_needed">Permita sobrepor a outros apps e toque de novo</string>
+  <string name="capture_no_subtitle_at_position">Nenhuma legenda neste ponto</string>
+  <string name="capture_no_video_in_vlc">Nenhum vídeo aberto no VLC</string>
+  <string name="capture_video_file_not_found">Arquivo do vídeo não encontrado</string>
+  <string name="capture_no_text_subtitles">Vídeo sem legenda em texto</string>
+  <string name="service_notification_text">Toque no botão flutuante para capturar legendas</string>
+  <string name="service_notification_channel">Sobreposição de captura</string>
+</resources>

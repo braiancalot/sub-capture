@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
 
     private fun requestCapture() {
         if (!Settings.canDrawOverlays(this)) {
-            showToast("Permita sobrepor a outros apps e toque de novo")
+            showToast(getString(R.string.overlay_permission_needed))
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             return
         }

@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,11 +30,16 @@ fun SelectionBar(selectedCount: Int, onCancel: () -> Unit, onSelectAll: () -> Un
             modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onCancel) { Text("Cancelar", color = MutedText, fontSize = 15.sp) }
-            TextButton(onClick = onSelectAll) { Text("Tudo", color = SelectAllText, fontSize = 15.sp) }
+            TextButton(onClick = onCancel) {
+                Text(stringResource(R.string.selection_cancel), color = MutedText, fontSize = 15.sp)
+            }
+            TextButton(onClick = onSelectAll) {
+                Text(stringResource(R.string.selection_select_all), color = SelectAllText, fontSize = 15.sp)
+            }
             Spacer(Modifier.weight(1f))
             Button(onClick = onCopy, shape = RoundedCornerShape(8.dp)) {
-                Text("Copiar $selectedCount", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                val copyLabel = stringResource(R.string.selection_copy_count, selectedCount)
+                Text(copyLabel, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -260,8 +260,11 @@ docs and notes.
 - In documents, state the finding, the evidence and the fix; drop the story of how you got there.
   If a sentence doesn't change what the reader does next, delete it.
 - Conversations happen in Portuguese. Developer-facing text (code, comments, errors, logs,
-  commits) is in English. Strings the user sees in the app UI stay in
-  Portuguese.
+  commits) is in English.
+- Strings the user sees in the app are never written in Kotlin. They live in
+  `res/values/strings.xml` (English, the default) and `res/values-pt/strings.xml` (Portuguese),
+  and every new one goes into both. Android picks by the phone's language, or by the app's own
+  language in the system settings.
 
 ## Working Notes (`.scratch/`)
 

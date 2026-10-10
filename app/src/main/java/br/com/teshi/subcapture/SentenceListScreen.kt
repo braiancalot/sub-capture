@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -88,7 +89,7 @@ private fun CaptureToggleButton(isOverlayRunning: Boolean, onToggleCapture: () -
         contentPadding = PaddingValues(vertical = 14.dp),
     ) {
         Text(
-            text = if (isOverlayRunning) "Parar Captura" else "Iniciar Captura",
+            text = stringResource(if (isOverlayRunning) R.string.stop_capture else R.string.start_capture),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -120,6 +121,6 @@ private fun SentenceList(
 @Composable
 private fun EmptyListMessage() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Nenhuma legenda capturada ainda.", color = FaintText, fontSize = 14.sp)
+        Text(stringResource(R.string.empty_sentence_list), color = FaintText, fontSize = 14.sp)
     }
 }
