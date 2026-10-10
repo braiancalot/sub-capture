@@ -26,6 +26,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="mediaProjection"`). Lifecycle, notification, VLC pause/resume broadcasts and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
 | `ScreenFrameGrabber.kt` | `MediaProjection` + `VirtualDisplay` + `ImageReader`. Grabs one frame as a `Bitmap`, with a 3s timeout. |
 | `SubtitleRecognizer.kt` | ML Kit call, plus the pure `subtitleFromBlocks` that turns OCR blocks into one line. |
+| `CapturedFrameDump.kt` | Debug builds only: saves every captured frame as a PNG under the app's external `files/frames/`. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, pulse animation, saved position. |
 | `OverlayButtonGeometry.kt` | Pure tap-versus-drag and snap-target math. |
 
@@ -45,7 +46,7 @@ Data flow:
 5. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
-the user as a short toast.
+the user as a short toast. The debug build also logs each frame's size and the OCR result there.
 
 ## Working Methodology
 
@@ -92,6 +93,7 @@ QA.
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
 ./gradlew :app:lintDebug   # Android Lint, the same warnings Android Studio shows
 adb logcat -s OverlayService   # capture failures, with the concrete reason
+adb pull /sdcard/Android/data/br.com.teshi.subcapture.debug/files/frames .   # captured frames
 ```
 
 No format command is configured.

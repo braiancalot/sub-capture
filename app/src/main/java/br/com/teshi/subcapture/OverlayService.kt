@@ -110,13 +110,22 @@ class OverlayService : Service() {
     }
 
     private fun recognizeSubtitle(frame: Bitmap) {
+        if (isDebuggableBuild) dumpFrame(frame)
         subtitleRecognizer.recognize(frame, ::finishCaptureWithSubtitle) { reason ->
             finishCaptureWithError("Falha no reconhecimento de texto", reason)
         }
     }
 
+    private fun dumpFrame(frame: Bitmap) {
+        val frameSize = "${frame.width}x${frame.height}"
+        runCatching { saveCapturedFrame(frame) }
+            .onSuccess { frameFile -> Log.d(LOG_TAG, "frame $frameSize saved to $frameFile") }
+            .onFailure { error -> Log.e(LOG_TAG, "could not save frame $frameSize: $error") }
+    }
+
     private fun finishCaptureWithSubtitle(subtitle: String?) {
         finishCapture()
+        if (isDebuggableBuild) Log.d(LOG_TAG, "ocr result: $subtitle")
         if (subtitle == null) {
             showToast("Nenhuma legenda encontrada")
             return
