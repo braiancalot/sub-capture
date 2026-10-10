@@ -1,6 +1,7 @@
 # Finding: landscape video is captured at 45% resolution
 
-Status: confirmed on the device on 2026-10-10, from frames saved by the debug build. Not fixed.
+Status: confirmed and fixed on 2026-10-10. Everything under Evidence describes the behavior before
+the fix.
 
 ## Evidence
 
@@ -24,10 +25,18 @@ OCR read the subtitle correctly in all five frames, including the landscape one.
 large white text with a dark outline. Smaller or lower contrast subtitles have not been tested at
 this resolution.
 
-## Possible fix
+## Fix
 
-Recreate the `ImageReader` and call `VirtualDisplay.resize` when the display rotates, or size the
-buffer to the larger dimension on both axes.
+`ScreenFrameGrabber` implements `MediaProjection.Callback.onCapturedContentResize`, which Android 14
+calls when the screen rotates, and swaps in an `ImageReader` of the new size. Verified on the
+device: the same landscape scene is now captured as 2712x1220 with the picture filling the frame.
+
+Side effect seen in the first landscape capture after the fix: ML Kit split the subtitle into two
+blocks, so the line came out as `... LUNCH MONEY? / MAAM, YES, MAAM.` where the 45% frame had given
+one block. More pixels changes how blocks are grouped.
+
+Rotating back to portrait and then to landscape again was also verified (1220x2712, then
+2712x1220). Starting the capture in landscape cannot happen: `MainActivity` is locked to portrait.
 
 ## Related: stray blocks in the result
 
