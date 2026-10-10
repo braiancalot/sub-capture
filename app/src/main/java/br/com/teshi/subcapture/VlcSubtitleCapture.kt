@@ -46,7 +46,7 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
             )
         }
         return vlcConnection.currentPlayback() ?: throw SubtitleCaptureFailure(
-            "Nenhum vídeo aberto no VLC", "VLC's media session has no playback state, no metadata or no duration yet"
+            "Nenhum vídeo aberto no VLC", "VLC's media session is stopped, or has no playback state, no metadata or no duration yet"
         )
     }
 

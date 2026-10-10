@@ -5,6 +5,7 @@ import android.content.Context
 import android.media.MediaMetadata
 import android.media.browse.MediaBrowser
 import android.media.session.MediaController
+import android.media.session.PlaybackState
 import android.util.Log
 
 private val VLC_PLAYBACK_SERVICE = ComponentName("org.videolan.vlc", "org.videolan.vlc.PlaybackService")
@@ -56,7 +57,11 @@ class VlcConnection(private val context: Context, private val onVideoChanged: ()
 
     fun currentPlayback(): VlcPlayback? {
         val vlcSession = mediaController ?: return null
-        val positionMillis = vlcSession.playbackState?.position ?: return null
+        val playbackState = vlcSession.playbackState ?: return null
+        // After the player closes the session keeps the last title and duration, with position 0
+        if (playbackState.state == PlaybackState.STATE_STOPPED || playbackState.state == PlaybackState.STATE_NONE) {
+            return null
+        }
         val metadata = vlcSession.metadata ?: return null
         val durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION)
         // VLC reports the new title before the duration, and a zero duration matches sub-second clips
@@ -64,7 +69,7 @@ class VlcConnection(private val context: Context, private val onVideoChanged: ()
         return VlcPlayback(
             title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty(),
             durationMillis = durationMillis,
-            positionMillis = positionMillis,
+            positionMillis = playbackState.position,
         )
     }
 }
