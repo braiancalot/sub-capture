@@ -14,9 +14,21 @@
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
 5. On the phone, open the Release page, download the APK and install it over the previous version.
 
-Google Play Protect blocks the install with a warning, because the APK comes from outside the Play
-Store and asks for screen capture and overlay permissions. Seen on `v1.1.0`. Choose to install
-anyway.
+Since `v2.0.0` the APK cannot be installed by opening it on the phone: Play Protect blocks it
+outright ("O app foi bloqueado para proteger seu dispositivo"), because it declares a notification
+listener. Download it on the PC and install over adb instead:
+
+```bash
+adb install -r SubCapture-v1.2.0.apk
+```
+
+Then grant notification access, which Android also restricts for this build:
+
+```bash
+adb shell cmd notification allow_listener br.com.teshi.subcapture/br.com.teshi.subcapture.VlcSessionListener
+```
+
+Up to `v1.1.1` Play Protect only warned and offered to install anyway.
 
 A failed run publishes nothing. Fix the cause, then delete the tag and push it again:
 

@@ -125,6 +125,28 @@ taps the reported position advanced by the wall-clock time to the millisecond (2
 2.151 s, 1.253 s against 1.254 s), and VLC had no subtitle delay set. That file's track is simply
 loosely timed.
 
+## An alternative to the notification listener
+
+Status: read from VLC's source on 2026-10-10, never run.
+
+The `NotificationListenerService` that `getActiveSessions` requires has two costs, both seen with
+the `v2.0.0` release build: Play Protect in Brazil refuses to install the downloaded APK, and
+Android greys out the notification access switch as a restricted setting.
+
+VLC's `PlaybackService` is an exported `MediaBrowserService`, the one Android Auto connects to. In
+the `master` source its `onGetRoot` accepts any caller: it logs the client and only returns null
+when VLC itself lacks storage permission. An app can therefore connect with
+`MediaBrowser(context, ComponentName("org.videolan.vlc", "org.videolan.vlc.PlaybackService"), ...)`,
+take `sessionToken` from the connection and build a `MediaController` on it. That controller should
+expose the same playback state and metadata with no special access, and its `onMetadataChanged`
+callback reports when the video changes.
+
+## Slow first capture on the device
+
+The first capture of an episode takes about 5 seconds on the phone, against 0.13 s on the PC for
+the same file. That is when the whole file is read; the cues then stay in memory. The likely cause
+is the cost of many small reads through Android's storage layer, not measured yet.
+
 ## Open
 
 1. Which ASS styles count as subtitle lines (`Main` clearly, `Lyrics` and `Captions` unclear).

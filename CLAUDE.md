@@ -283,10 +283,17 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   may return another language than the one on screen.
 - **Video access must be "Allow all".** With "Select photos and videos" `MediaStore` hides the
   episodes and every capture ends in "Arquivo do vídeo não encontrado".
-- **Notification access may be greyed out on the release build.** Android treats it as a
-  restricted setting for apps installed from a downloaded APK. Open the app's info screen, then
-  the three-dot menu, then "Allow restricted settings". Builds installed with `adb` are not
-  affected.
+- **The release APK cannot be installed from the phone.** In Brazil, Play Protect's fraud
+  protection blocks a downloaded APK that declares a notification listener, with no "install
+  anyway" button. Seen with `v2.0.0`. Download the APK on the PC and run `adb install -r` on it.
+- **Notification access is a restricted setting on the release build**, even when installed with
+  `adb`. Seen with `v2.0.0`. Grant it with `adb shell cmd notification allow_listener
+  br.com.teshi.subcapture/br.com.teshi.subcapture.VlcSessionListener`, or on the phone: the app's
+  info screen, the three-dot menu, "Allow restricted settings". The debug build was not affected.
+- **The first capture of an episode takes about 5 seconds on the device**, because that is when the
+  whole file is read. Later captures of the same episode are instant.
+- Both install obstacles come from the notification listener. `docs/research-subtitle-from-file.md`
+  describes an untested way to read VLC's position without it.
 - **Toasts are unreliable from `OverlayService`.** Android rate-limits and queues toasts from an
   app that is not in front: seen on-device, most capture toasts never appeared. Feedback during a
   capture goes through `CaptureFeedbackBubble` instead.
