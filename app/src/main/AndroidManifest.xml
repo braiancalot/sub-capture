@@ -3,7 +3,7 @@
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
   <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
   <application
       android:name=".SubCaptureApplication"
       android:label="@string/app_name"
@@ -25,8 +25,12 @@
     <service
         android:name=".OverlayService"
         android:exported="false"
-        android:foregroundServiceType="mediaProjection"
-        android:stopWithTask="true"/>
+        android:foregroundServiceType="specialUse"
+        android:stopWithTask="true">
+      <property
+          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+          android:value="Floating capture button shown over the video player"/>
+    </service>
     <service
         android:name=".VlcSessionListener"
         android:exported="true"

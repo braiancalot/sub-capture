@@ -1,14 +1,11 @@
 package br.com.teshi.subcapture
 
 import android.Manifest
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.media.projection.MediaProjectionConfig
-import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -16,7 +13,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,12 +22,9 @@ private val runtimePermissions = listOf(
 )
 
 class MainActivity : ComponentActivity() {
-    private val projectionConsentLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult(), ::startOverlayIfGranted)
-
     // Without POST_NOTIFICATIONS Android drops the service's toasts while another app is in front
     private val runtimePermissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { launchProjectionConsent() }
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { OverlayService.start(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,22 +62,7 @@ class MainActivity : ComponentActivity() {
             runtimePermissionsLauncher.launch(missingPermissions.toTypedArray())
             return
         }
-        launchProjectionConsent()
-    }
-
-    private fun launchProjectionConsent() {
-        val wholeScreenConfig = MediaProjectionConfig.createConfigForDefaultDisplay()
-        val projectionManager = getSystemService(MediaProjectionManager::class.java)
-        projectionConsentLauncher.launch(projectionManager.createScreenCaptureIntent(wholeScreenConfig))
-    }
-
-    private fun startOverlayIfGranted(consent: ActivityResult) {
-        val consentIntent = consent.data
-        if (consent.resultCode != Activity.RESULT_OK || consentIntent == null) {
-            showToast("Permissão de captura negada")
-            return
-        }
-        OverlayService.start(this, consent.resultCode, consentIntent)
+        OverlayService.start(this)
     }
 
     private fun copyToClipboard(text: String) {

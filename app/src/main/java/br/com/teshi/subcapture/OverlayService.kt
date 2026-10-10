@@ -1,6 +1,5 @@
 package br.com.teshi.subcapture
 
-import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,9 +7,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.graphics.Bitmap
-import android.media.projection.MediaProjection
-import android.media.projection.MediaProjectionManager
 import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.MainScope
@@ -23,19 +19,14 @@ import kotlinx.coroutines.launch
 private const val LOG_TAG = "OverlayService"
 private const val NOTIFICATION_CHANNEL_ID = "overlay_channel"
 private const val NOTIFICATION_ID = 1
-private const val RESULT_CODE_EXTRA = "resultCode"
-private const val CONSENT_INTENT_EXTRA = "consentIntent"
 
 class OverlayService : Service() {
     companion object {
         private val runningState = MutableStateFlow(false)
         val isRunning: StateFlow<Boolean> = runningState.asStateFlow()
 
-        fun start(context: Context, resultCode: Int, consentIntent: Intent) {
-            val startIntent = Intent(context, OverlayService::class.java)
-                .putExtra(RESULT_CODE_EXTRA, resultCode)
-                .putExtra(CONSENT_INTENT_EXTRA, consentIntent)
-            context.startForegroundService(startIntent)
+        fun start(context: Context) {
+            context.startForegroundService(Intent(context, OverlayService::class.java))
         }
 
         fun stop(context: Context) {
@@ -43,10 +34,8 @@ class OverlayService : Service() {
         }
     }
 
-    private val subtitleRecognizer = SubtitleRecognizer()
     private val vlcSubtitleCapture = VlcSubtitleCapture(this)
     private val captureScope = MainScope()
-    private var screenFrameGrabber: ScreenFrameGrabber? = null
     private var floatingCaptureButton: FloatingCaptureButton? = null
     private var isCapturing = false
 
@@ -54,32 +43,17 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        // getMediaProjection MUST come after startForeground with the mediaProjection type
-        startForeground(
-            NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
-        )
+        startForeground(NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle).also { it.show() }
         runningState.value = true
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (screenFrameGrabber != null) return START_NOT_STICKY
-        val mediaProjection = mediaProjectionFrom(intent)
-        if (mediaProjection == null) {
-            Log.e(LOG_TAG, "start intent carried no usable MediaProjection consent, extras=${intent?.extras}")
-            stopSelf()
-            return START_NOT_STICKY
-        }
-        screenFrameGrabber = ScreenFrameGrabber(mediaProjection, resources.displayMetrics, ::stopSelf)
-        floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle).also { it.show() }
-        return START_NOT_STICKY
-    }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_NOT_STICKY
 
     override fun onDestroy() {
         super.onDestroy()
         captureScope.cancel()
         floatingCaptureButton?.remove()
-        screenFrameGrabber?.release()
-        subtitleRecognizer.close()
         runningState.value = false
     }
 
@@ -91,15 +65,8 @@ class OverlayService : Service() {
         return Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("SubCapture")
             .setContentText("Toque no botão flutuante para capturar legendas")
-            .setSmallIcon(android.R.drawable.ic_menu_camera)
+            .setSmallIcon(R.drawable.subcapture_mark)
             .build()
-    }
-
-    private fun mediaProjectionFrom(intent: Intent?): MediaProjection? {
-        val resultCode = intent?.getIntExtra(RESULT_CODE_EXTRA, Activity.RESULT_CANCELED)
-        val consentIntent = intent?.getParcelableExtra(CONSENT_INTENT_EXTRA, Intent::class.java)
-        if (resultCode != Activity.RESULT_OK || consentIntent == null) return null
-        return getSystemService(MediaProjectionManager::class.java).getMediaProjection(resultCode, consentIntent)
     }
 
     private fun captureSubtitle() {
@@ -115,30 +82,6 @@ class OverlayService : Service() {
                 finishCaptureWithError(failure.userMessage, failure.message.orEmpty())
             }
         }
-    }
-
-    private fun captureSubtitleWithOcr() {
-        val frameGrabber = screenFrameGrabber ?: return
-        if (isCapturing) return
-        isCapturing = true
-        floatingCaptureButton?.startPulse()
-        frameGrabber.grabFrame(::recognizeSubtitle) { reason ->
-            finishCaptureWithError("Sem imagem da tela (app protegido?)", reason)
-        }
-    }
-
-    private fun recognizeSubtitle(frame: Bitmap) {
-        if (isDebuggableBuild) dumpFrame(frame)
-        subtitleRecognizer.recognize(frame, ::finishCaptureWithSubtitle) { reason ->
-            finishCaptureWithError("Falha no reconhecimento de texto", reason)
-        }
-    }
-
-    private fun dumpFrame(frame: Bitmap) {
-        val frameSize = "${frame.width}x${frame.height}"
-        runCatching { saveCapturedFrame(frame) }
-            .onSuccess { frameFile -> Log.d(LOG_TAG, "frame $frameSize saved to $frameFile") }
-            .onFailure { error -> Log.e(LOG_TAG, "could not save frame $frameSize: $error") }
     }
 
     private fun finishCaptureWithSubtitle(subtitle: String?) {
