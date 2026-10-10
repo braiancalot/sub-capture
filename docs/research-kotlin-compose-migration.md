@@ -38,6 +38,9 @@ version is tagged `v0.1.0`.
   in the `overlay_button_position` preferences (`button_x`, `button_y`). The React Native names
   (`sentences.txt`, `overlay_prefs`, `btn_x`, `btn_y`) were dropped without a migration, since no
   release had shipped and the saved list was disposable.
+- **Capture strategy (2026-10-10):** screen capture and OCR were replaced by reading the line from
+  the video file's subtitle track, see `research-subtitle-from-file.md`. That retires the rows on
+  the consent dialog, the OCR region and the no-text case, along with `MediaProjection` and ML Kit.
 
 ## Open
 

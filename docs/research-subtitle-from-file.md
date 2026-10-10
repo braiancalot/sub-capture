@@ -1,7 +1,7 @@
 # Research: reading the subtitle from the file instead of OCR
 
-Status: proven by hand on 2026-10-10. Position from VLC plus the subtitle track of the file gives
-the exact line in 7 of 7 captures. Not built into the app yet.
+Status: built and accepted on the device on 2026-10-10. It replaced OCR, which was removed in
+`v2.0.0`.
 
 ## Idea
 
@@ -103,7 +103,7 @@ such as `{\i1}` and `\N` line breaks inside the text.
 Verdict: a pure Kotlin reader is feasible, runs in JVM unit tests, and avoids a Media3 dependency.
 
 That reader now exists (`MatroskaSubtitleReader.kt`, with `SubtitleCueText.kt` and
-`SubtitleLookup.kt`), not yet wired into the app. Run against the two real episodes it returns the
+`SubtitleLookup.kt`). Run against the two real episodes it returns the
 same 657 and 328 cues in 131 and 55 ms, and the right line for all seven positions measured above.
 The real One Pace file exposed a bug the first fixtures missed: audio and video blocks stored in
 `BlockGroup`s made the reader lose its place. The `two-subtitle-tracks.mkv` fixture reproduces it.
@@ -116,6 +116,14 @@ VLC has selected.
 The test fixtures in `app/src/test/resources/` are a few KB each: black video, silent audio and
 invented lines, generated with ffmpeg (`-f lavfi -i color=... -f lavfi -i anullsrc=... -i lines.srt
 -c:s srt`). Real episodes stay out of the repository.
+
+## Accepted on the device
+
+With the path wired into the tap, One Pace returned the line on screen in every capture. Modern
+Family S06E13 sometimes returned a neighbouring line. The debug log ruled the app out: between
+taps the reported position advanced by the wall-clock time to the millisecond (2.144 s against
+2.151 s, 1.253 s against 1.254 s), and VLC had no subtitle delay set. That file's track is simply
+loosely timed.
 
 ## Open
 

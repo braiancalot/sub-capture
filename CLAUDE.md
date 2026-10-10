@@ -2,51 +2,59 @@
 
 ## Project
 
-**SubCapture** is an Android app that captures subtitles from video apps (VLC, etc.) using screen
-capture plus on-device OCR, so lines can be copied out as text instead of retyped. Personal use,
-single user. Tap a floating button while a video is playing: the app screenshots the screen, runs
-ML Kit text recognition and adds the result to a list. From the list, tap one line to copy it, or
-long-press to multi-select and copy several as newline-separated text. Android only.
+**SubCapture** is an Android app that saves the subtitle line on screen while a video plays in VLC,
+so lines can be copied out as text instead of retyped. Personal use, single user. Tap a floating
+button during playback: the app asks VLC where the video is, reads that moment's line from the
+subtitle track inside the video file and adds it to a list. From the list, tap one line to copy it,
+or long-press to multi-select and copy several as newline-separated text. Android only. It works
+for local `.mkv` files with a text subtitle track (SubRip or ASS).
 
-Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). `MediaProjection` +
-`VirtualDisplay` + `ImageReader` for screen capture, Google ML Kit Text Recognition for OCR, a
-`WindowManager` overlay run from a foreground service. `minSdk` is 34, so there are no
-`Build.VERSION` branches. `v0.1.0` is the last React Native version, kept as a rollback point.
+Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). VLC's media session, read through
+a notification listener, for the playback position; `MediaStore` to find the file; a small Matroska
+reader for the subtitle track; a `WindowManager` overlay run from a foreground service. `minSdk` is
+34, so there are no `Build.VERSION` branches. `v0.1.0` is the last React Native version and
+`v1.1.1` the last one that used screen capture and OCR, both kept as rollback points.
 
 Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 `app/src/test/java/br/com/teshi/subcapture/`.
 
 | File | Role |
 | --- | --- |
-| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay permission and the `MediaProjection` consent, starts and stops `OverlayService`, copies to the clipboard. |
+| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay permission, notification access and the runtime permissions, starts and stops `OverlayService`, copies to the clipboard. |
 | `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, tap to copy, long-press multi-select, delete. Selection state lives in the composable. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
-| `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service. |
+| `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files. |
 | `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.json`. |
-| `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="mediaProjection"`). Lifecycle, notification, VLC pause/resume broadcasts and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
-| `ScreenFrameGrabber.kt` | `MediaProjection` + `VirtualDisplay` + `ImageReader`. Grabs one frame as a `Bitmap`, with a 3s timeout. |
-| `SubtitleRecognizer.kt` | ML Kit call, plus the pure `subtitleFromBlocks` that turns OCR blocks into one line. |
-| `CapturedFrameDump.kt` | Debug builds only: saves every captured frame as a PNG under the app's external `files/frames/`. |
+| `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
+| `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file), line. Turns each failure into a `SubtitleCaptureFailure` carrying the toast text and the log reason. |
+| `VlcPlayback.kt` | Reads title, duration and position from VLC's media session. Holds the empty `NotificationListenerService` that this access depends on. |
+| `EpisodeLibrary.kt` | `MediaStore` query by duration, and opening a file for the reader. |
+| `EpisodeFileMatch.kt` | Pure choice among files of the same duration, by words shared with the title. |
+| `MatroskaSubtitleReader.kt` | Pure reader of the first text subtitle track of an `.mkv`. |
+| `SubtitleCueText.kt` | Pure cleanup of SubRip and ASS cue payloads into plain text. |
+| `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, pulse animation, saved position. |
 | `OverlayButtonGeometry.kt` | Pure tap-versus-drag and snap-target math. |
 
 Data flow:
 
 1. The user taps "Iniciar Captura". `MainActivity` sends them to the overlay permission screen if
-   it is missing, asks for the notification permission if it is missing, then launches Android's `MediaProjection` consent dialog, forced to the
-   whole screen with `MediaProjectionConfig.createConfigForDefaultDisplay()`.
-2. Once granted, `OverlayService` starts as a foreground service with the consent result in its
-   intent, builds the `ScreenFrameGrabber` and shows the floating draggable button.
+   it is missing, then to the notification access screen if that is missing, asks for the
+   notification and video permissions if missing, then starts `OverlayService`.
+2. `OverlayService` starts as a foreground service and shows the floating draggable button.
 3. The user taps the floating button (a drag of 10px or more counts as repositioning, not a tap).
-   The service pauses VLC, grabs a frame of the whole screen, runs ML Kit OCR on it and joins all
-   text blocks found with " / ". There is no cropping.
-4. The line is prepended to `SentenceStore`, which persists it. The service writes to the store
-   directly, so a capture is saved even while the activity is not on screen. When no text is
-   found nothing is added and a toast says so.
-5. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
+   The service reads VLC's title, duration and position from its media session. Playback is not
+   paused.
+4. It finds the file in `MediaStore` by duration (within 1s), using the title to choose among
+   several, and reads the cues of its first text subtitle track. The cues of the last file stay in
+   memory, so only the first capture of an episode reads the file.
+5. The line on screen at that position is prepended to `SentenceStore`, which persists it. Lines
+   on screen together are joined with " / ". With none on screen it takes a line starting within
+   500ms, else the last one that ended within 5s, else nothing is added and a toast says so.
+6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
-the user as a short toast. The debug build also logs each frame's size and the OCR result there.
+the user as a short toast. The debug build also logs each capture's position, file and line there.
 
 ## Working Methodology
 
@@ -58,17 +66,18 @@ QA.
    screen, a refactor across files, a change of capture strategy) and wait for confirmation. Small,
    localized changes can be made directly. When the user says "review" or "analyze", answer with a
    diagnosis, trade-offs and questions, not a patch.
-2. **Never run the app or verify a capture yourself.** Screen capture, overlay behavior and OCR
-   accuracy can only be judged by the user on their own device against a real video. Ask them to
-   test and report back, or to paste the `adb logcat -s OverlayService` output, rather than
-   claiming a capture works. Builds are the user's too: they install onto the user's device.
+2. **Never run the app or verify a capture yourself.** Overlay behavior, what VLC reports and
+   whether the captured line matches the screen can only be judged by the user on their own device
+   against a real video. Ask them to test and report back, or to paste the
+   `adb logcat -s OverlayService` output, rather than claiming a capture works. Builds are the
+   user's too: they install onto the user's device.
    Individual test files you may run, and should, to check your own work; the full suite is the
    user's.
 3. **TDD where a suite exists.** Every feature ships with a test and every bug fix gets a
-   regression test, red-green-refactor when possible. Pure logic (OCR-block to subtitle
-   selection, button geometry, selection text) gets pulled out of `OverlayService` or UI event
+   regression test, red-green-refactor when possible. Pure logic (subtitle parsing and lookup,
+   file matching, button geometry, selection text) gets pulled out of `OverlayService` or UI event
    handlers into plain testable functions. Tests must be F.I.R.S.T: fast, independent,
-   repeatable, self-validating, timely. Mock external I/O (ML Kit) with named fakes, not inline
+   repeatable, self-validating, timely. Mock external I/O with named fakes, not inline
    stubs. The exception is `SentenceStore`, tested against a real `TemporaryFolder`: a storage
    interface only for the test would be YAGNI.
 4. **Small, logical commits**, each self-contained and functional, and passing CI.
@@ -93,7 +102,6 @@ QA.
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
 ./gradlew :app:lintDebug   # Android Lint, the same warnings Android Studio shows
 adb logcat -s OverlayService   # capture failures, with the concrete reason
-adb pull /sdcard/Android/data/br.com.teshi.subcapture.debug/files/frames .   # captured frames
 ```
 
 No format command is configured.
@@ -107,9 +115,9 @@ Two builds coexist on the device as separate apps, each with its own list and pe
   the keystore is not on the machine.
 
 Environment: Android Studio (or the Android SDK command-line tools, with `JAVA_HOME` pointing at a
-JDK 17 or newer) plus a device or emulator with Google Play services, which ML Kit needs. A
-physical device is strongly preferred, since `MediaProjection`, overlays and foreground services
-behave differently on the emulator.
+JDK 17 or newer) plus a device with VLC and a local `.mkv` to play. A physical device is strongly
+preferred, since overlays, foreground services and media sessions behave differently on the
+emulator.
 
 To install without a cable, pair once over Wi-Fi: `adb pair <ip>:<port>` (shown in Settings >
 Developer options > Wireless debugging), then `adb connect <ip>:<port>`. After that the install
@@ -119,9 +127,13 @@ First-run permissions on the device:
 
 1. **Draw over other apps** (`SYSTEM_ALERT_WINDOW`): "Iniciar Captura" opens the settings screen
    when it is missing. Grant it, go back and tap again.
-2. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
+2. **Notification access** (a special access screen, not a dialog): "Iniciar Captura" opens it
+   when missing. It is how the app reads VLC's position; the app reads no notifications. Grant it,
+   go back and tap again. For the debug build it can be granted from the PC:
+   `adb shell cmd notification allow_listener br.com.teshi.subcapture.debug/br.com.teshi.subcapture.VlcSessionListener`
+3. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
    does not block the capture, it only hides the toasts and the service notification.
-3. **Screen capture**: requested by tapping "Iniciar Captura".
+4. **Videos** (`READ_MEDIA_VIDEO`): requested by "Iniciar Captura" when missing. Choose "Allow all".
 
 There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
 installed by hand.
@@ -129,8 +141,13 @@ installed by hand.
 ## Testing
 
 JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
-above. Covered: `subtitleFromBlocks`, the overlay button geometry, the selection copy text and
-`SentenceStore` against a `TemporaryFolder`.
+above. Covered: the Matroska subtitle reader, the cue text cleanup, the lookup by position, the
+file matching, the overlay button geometry, the selection copy text and `SentenceStore` against a
+`TemporaryFolder`.
+
+The reader is tested against `.mkv` fixtures of a few KB in `app/src/test/resources/`: black video,
+silent audio and invented lines, generated with ffmpeg. Real episodes never go into the repository.
+`docs/research-subtitle-from-file.md` has the command and the cases each fixture covers.
 
 Unit tests run against stubbed Android classes, so anything under test must stay free of Android
 APIs. That is why the pure functions live outside the classes that touch `View` or `Bitmap`.
@@ -152,8 +169,9 @@ Never create the tag without the user confirming first.
 - `versionName` is the tag without the `v`, `versionCode` is the commit count. Neither is edited by
   hand.
 - Versioning is `vMAJOR.MINOR.PATCH`: PATCH for a bugfix, MINOR for a new feature, MAJOR for a
-  breaking rework (the Kotlin/Compose migration lands as `v1.0.0`). `v0.1.0` marks the last React
-  Native version, tagged as a rollback point before that migration.
+  breaking rework (the Kotlin/Compose migration was `v1.0.0`, reading subtitles from the file
+  instead of OCR is `v2.0.0`). `v0.1.0` marks the last React Native version and `v1.1.1` the last
+  OCR version.
 - **Tag only after the user has tested the change on their own device.** Never immediately after
   code is written: a build that compiles is not a capture that works against real subtitles.
 - Small in-progress commits between releases don't need a tag.
@@ -164,7 +182,7 @@ Never create the tag without the user confirming first.
 
 Conventional Commits: `<type>(<scope>): <imperative present tense description>`. Common types are
 `feat`, `fix`, `refactor`, `chore`, `docs`, `test`. The scope is optional and names the area
-touched (`overlay`, `ocr`, `ui`), e.g. `fix(ocr): crop bottom 30% before OCR`.
+touched (`overlay`, `subtitle`, `ui`), e.g. `fix(subtitle): read cues stored in SimpleBlocks`.
 
 Subject line only, most of the time. Add a body only when it carries something the diff cannot show
 (the why, a trade-off, a gotcha), and keep it short. Never restate what changed.
@@ -180,8 +198,8 @@ amend, since `--amend` rewrites whatever `HEAD` currently is, not the commit you
 - Functions: 4 to 20 lines. Split if longer.
 - Files: under 500 lines as a hard ceiling. UI components keep a tighter guideline around 150
   lines and split earlier.
-- One thing per function, one responsibility per module (SRP). Anything OCR or image-processing
-  related goes into its own file once it is independently testable.
+- One thing per function, one responsibility per module (SRP). Anything that parses or matches
+  subtitle data goes into its own file once it is independently testable.
 - Names: specific and unique. Avoid `data`, `handler`, `Manager`. Prefer names returning fewer than
   five grep hits. Spell identifiers out (`processingConfig`, not `cfg`) and write numbers as digits
   (`view2d`, not `twoD`).
@@ -192,9 +210,9 @@ amend, since `--amend` rewrites whatever `HEAD` currently is, not the commit you
 - Early returns over nested ifs. Max two levels of nesting inside a function, three in a
   `@Composable`, where every container adds a lambda. Wrapped argument lists don't count.
 - Exception and log messages (including the `OverlayService` Logcat lines) must say concretely
-  what went wrong, with the offending value and the expected shape ("no frame after 3s", not just
-  "error"). They are the only diagnostics available from a device the user is looking at without
-  a debugger.
+  what went wrong, with the offending value and the expected shape ("no MediaStore video lasting
+  1294544ms", not just "error"). They are the only diagnostics available from a device the user is
+  looking at without a debugger.
 - Formatting: the language's standard formatter and linter. Don't debate style beyond that.
 
 ### Comments
@@ -247,18 +265,26 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
 
 ## Gotchas
 
-- **`FLAG_SECURE` apps return a black frame.** Netflix and similar apps block screenshots at the OS
-  level and `MediaProjection` has no workaround. OCR on these reliably finds nothing. Expected, not
-  a bug.
-- **Screen capture consent is single use.** It is spent when `OverlayService` starts and is gone
-  when the service stops, the process dies or the user ends sharing from the system UI. The user
-  has to tap "Iniciar Captura" again. Not a crash.
+- **Only local `.mkv` files with a text subtitle track work.** SubRip and ASS tracks are read.
+  Image subtitles (PGS, VobSub), a separate `.srt` next to the video, other containers and network
+  streams give "Vídeo sem legenda em texto" or "Arquivo do vídeo não encontrado". Expected, not a
+  bug.
+- **The line comes from the file, not from the screen.** A badly timed subtitle track returns a
+  neighbouring line. Seen with Modern Family S06E13, where the app's position readings were exact
+  and the track itself drifted.
+- **VLC's subtitle delay is invisible to the app.** A delay the user set in VLC shifts what is on
+  screen but not the lookup.
+- **The first text track is used, whatever VLC shows.** In a file with several languages the app
+  may return another language than the one on screen.
+- **Video access must be "Allow all".** With "Select photos and videos" `MediaStore` hides the
+  episodes and every capture ends in "Arquivo do vídeo não encontrado".
+- **Notification access may be greyed out on the release build.** Android treats it as a
+  restricted setting for apps installed from a downloaded APK. Open the app's info screen, then
+  the three-dot menu, then "Allow restricted settings". Builds installed with `adb` are not
+  affected.
 - **Toasts from `OverlayService` need the notification permission.** Android silently drops toasts
   from an app that is not in front when its notifications are blocked, and during a capture the
-  video app is in front. Seen on-device: no "Nenhuma legenda encontrada" toast until
-  `POST_NOTIFICATIONS` was declared and requested.
-- **Pausing/resuming the target video** happens via a broadcast intent aimed at VLC's package. It
-  silently does nothing for other video apps.
+  video app is in front.
 - **The overlay button position persists** in `SharedPreferences` (`overlay_button_position`)
   across app restarts. If the button seems lost, check it didn't snap off-screen on a device with a
   different resolution.

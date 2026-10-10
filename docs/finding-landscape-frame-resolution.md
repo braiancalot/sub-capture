@@ -1,7 +1,8 @@
 # Finding: landscape video is captured at 45% resolution
 
-Status: confirmed and fixed on 2026-10-10. Everything under Evidence describes the behavior before
-the fix.
+Status: historical. Confirmed and fixed on 2026-10-10 (`v1.1.1`), then made moot the same day:
+`v2.0.0` removed screen capture and OCR. Kept for the record of what OCR got wrong. Everything
+under Evidence describes the behavior before the fix.
 
 ## Evidence
 
