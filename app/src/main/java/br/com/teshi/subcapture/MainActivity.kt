@@ -21,13 +21,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
+private val runtimePermissions = listOf(
+    Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.READ_MEDIA_VIDEO
+)
+
 class MainActivity : ComponentActivity() {
     private val projectionConsentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult(), ::startOverlayIfGranted)
 
-    // Without this permission Android drops the service's toasts while another app is in front
-    private val notificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { launchProjectionConsent() }
+    // Without POST_NOTIFICATIONS Android drops the service's toasts while another app is in front
+    private val runtimePermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { launchProjectionConsent() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +57,16 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             return
         }
-        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        if (!hasVlcSessionAccess()) {
+            showToast("Permita o acesso a notificações e toque de novo")
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            return
+        }
+        val missingPermissions = runtimePermissions.filter {
+            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missingPermissions.isNotEmpty()) {
+            runtimePermissionsLauncher.launch(missingPermissions.toTypedArray())
             return
         }
         launchProjectionConsent()

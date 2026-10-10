@@ -13,17 +13,18 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.IBinder
 import android.util.Log
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 private const val LOG_TAG = "OverlayService"
 private const val NOTIFICATION_CHANNEL_ID = "overlay_channel"
 private const val NOTIFICATION_ID = 1
 private const val RESULT_CODE_EXTRA = "resultCode"
 private const val CONSENT_INTENT_EXTRA = "consentIntent"
-private const val VLC_PAUSE_ACTION = "org.videolan.vlc.remote.Pause"
-private const val VLC_PLAY_ACTION = "org.videolan.vlc.remote.Play"
 
 class OverlayService : Service() {
     companion object {
@@ -43,6 +44,8 @@ class OverlayService : Service() {
     }
 
     private val subtitleRecognizer = SubtitleRecognizer()
+    private val vlcSubtitleCapture = VlcSubtitleCapture(this)
+    private val captureScope = MainScope()
     private var screenFrameGrabber: ScreenFrameGrabber? = null
     private var floatingCaptureButton: FloatingCaptureButton? = null
     private var isCapturing = false
@@ -73,6 +76,7 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        captureScope.cancel()
         floatingCaptureButton?.remove()
         screenFrameGrabber?.release()
         subtitleRecognizer.close()
@@ -99,10 +103,24 @@ class OverlayService : Service() {
     }
 
     private fun captureSubtitle() {
+        if (isCapturing) return
+        isCapturing = true
+        floatingCaptureButton?.startPulse()
+        captureScope.launch {
+            try {
+                val capture = vlcSubtitleCapture.subtitleOnScreen()
+                if (isDebuggableBuild) Log.d(LOG_TAG, "capture: $capture")
+                finishCaptureWithSubtitle(capture.subtitle)
+            } catch (failure: SubtitleCaptureFailure) {
+                finishCaptureWithError(failure.userMessage, failure.message.orEmpty())
+            }
+        }
+    }
+
+    private fun captureSubtitleWithOcr() {
         val frameGrabber = screenFrameGrabber ?: return
         if (isCapturing) return
         isCapturing = true
-        sendBroadcast(Intent(VLC_PAUSE_ACTION))
         floatingCaptureButton?.startPulse()
         frameGrabber.grabFrame(::recognizeSubtitle) { reason ->
             finishCaptureWithError("Sem imagem da tela (app protegido?)", reason)
@@ -125,9 +143,8 @@ class OverlayService : Service() {
 
     private fun finishCaptureWithSubtitle(subtitle: String?) {
         finishCapture()
-        if (isDebuggableBuild) Log.d(LOG_TAG, "ocr result: $subtitle")
         if (subtitle == null) {
-            showToast("Nenhuma legenda encontrada")
+            showToast("Nenhuma legenda neste ponto")
             return
         }
         sentenceStore.prepend(subtitle)
@@ -141,7 +158,6 @@ class OverlayService : Service() {
 
     private fun finishCapture() {
         isCapturing = false
-        sendBroadcast(Intent(VLC_PLAY_ACTION))
         floatingCaptureButton?.stopPulse()
     }
 }
