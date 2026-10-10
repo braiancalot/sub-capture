@@ -1,0 +1,4 @@
+#!/bin/sh
+# A push of tags alone skips the check: those commits were checked when their branch was pushed
+grep -q " refs/heads/" || exit 0
+exec pwsh -NoProfile -File bin/check.ps1

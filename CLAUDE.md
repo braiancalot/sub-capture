@@ -128,6 +128,9 @@ emulator.
 
 The `bin/` scripts are PowerShell (`bin/dev.ps1`), run from the repository root.
 
+`git push` of a branch runs `bin/check` first, through `.githooks/pre-push`, and is refused when a
+test or lint fails. A fresh clone needs `git config core.hooksPath .githooks` once to turn it on.
+
 To install without a cable, pair once over Wi-Fi: `adb pair <ip>:<port>` (shown in Settings >
 Developer options > Wireless debugging). After that, turn wireless debugging on and run
 `bin/connect`: the port changes on every toggle, so the script scans the phone for it instead of
