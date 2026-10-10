@@ -9,8 +9,8 @@ as the notes of its GitHub Release.
 
 ### Changed
 
-- "Iniciar Captura" no longer asks for notification access. The app now talks to VLC directly, so
-  that permission is gone and can be revoked in the phone's settings if it was granted before.
+- The app no longer asks for notification access. It now talks to VLC directly, so that permission
+  is gone and can be revoked in the phone's settings if it was granted before.
 - The subtitles of an episode are loaded as soon as VLC opens it, so the first tap no longer waits
   for the file to be read.
 
@@ -23,7 +23,7 @@ as the notes of its GitHub Release.
   letters, no lost apostrophes, no scenery read as subtitle.
 - Works with local `.mkv` files that carry a text subtitle track (SubRip or ASS), played in VLC.
 - The video keeps playing during a capture.
-- "Iniciar Captura" no longer asks for screen capture. It asks once for notification access, which
+- Starting a capture no longer asks for screen capture. It asks once for notification access, which
   is how the app reads VLC's position, and for access to videos (choose "Allow all").
 
 ### Added

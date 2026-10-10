@@ -14,10 +14,13 @@
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
 5. On the phone, open the Release page, download the APK and install it over the previous version.
 
-The `v2.0.0` APK could not be installed by opening it on the phone: Play Protect blocked it
-outright ("O app foi bloqueado para proteger seu dispositivo"), because it declared a notification
-listener. `v2.1.0` dropped the listener, but no APK without it has been installed from the phone
-yet. If the block is still there, download the APK on the PC and install over adb instead:
+Play Protect shows a warning and offers to install anyway. The latest release is always at
+https://github.com/braiancalot/sub-capture/releases/latest.
+
+The `v2.0.0` APK could not be installed that way: Play Protect blocked it outright ("O app foi
+bloqueado para proteger seu dispositivo"), because it declared a notification listener. `v2.1.0`
+dropped the listener and installed from the phone. If a block ever comes back, download the APK on
+the PC and install over adb instead:
 
 ```bash
 adb install -r SubCapture-v1.2.0.apk

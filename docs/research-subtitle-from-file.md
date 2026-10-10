@@ -154,8 +154,8 @@ Measured on the device, with notification access revoked:
   again with the real one. A lookup by that zero duration matched a 0.4 s WhatsApp clip, so a
   playback with no duration is treated as no video yet.
 
-Not checked: whether the release APK without the listener installs from the phone, past Play
-Protect.
+The `v2.1.0` release APK, without the listener, installed from the phone: Play Protect went back to
+a warning with "install anyway".
 
 ## Slow first capture on the device
 

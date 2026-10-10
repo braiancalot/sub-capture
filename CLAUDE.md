@@ -20,7 +20,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 
 | File | Role |
 | --- | --- |
-| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay permission and the runtime permissions, starts and stops `OverlayService`, copies to the clipboard. |
+| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, copies to the clipboard. |
 | `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, tap to copy, long-press multi-select, delete. Selection state lives in the composable. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files. |
@@ -39,9 +39,8 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 
 Data flow:
 
-1. The user taps "Iniciar Captura". `MainActivity` sends them to the overlay permission screen if
-   it is missing, asks for the notification and video permissions if missing, then starts
-   `OverlayService`.
+1. The user starts the capture. `MainActivity` sends them to the overlay permission screen if
+   it is missing, asks for the video permission if missing, then starts `OverlayService`.
 2. `OverlayService` starts as a foreground service, shows the floating draggable button and
    connects to VLC. Each time VLC changes video it reads that file's cues ahead of the first tap.
 3. The user taps the floating button (a drag of 10px or more counts as repositioning, not a tap).
@@ -129,11 +128,9 @@ commands go over Wi-Fi.
 
 First-run permissions on the device:
 
-1. **Draw over other apps** (`SYSTEM_ALERT_WINDOW`): "Iniciar Captura" opens the settings screen
-   when it is missing. Grant it, go back and tap again.
-2. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
-   does not block the capture, it only hides the service notification.
-3. **Videos** (`READ_MEDIA_VIDEO`): requested by "Iniciar Captura" when missing. Choose "Allow all".
+1. **Draw over other apps** (`SYSTEM_ALERT_WINDOW`): starting the capture opens the settings
+   screen when it is missing. Grant it, go back and start again.
+2. **Videos** (`READ_MEDIA_VIDEO`): requested when the capture starts, if missing. Choose "Allow all".
 
 There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
 installed by hand.
@@ -158,10 +155,10 @@ tests for fine plumbing, and don't open a brand new mocking layer just to reach 
 ## Releases & Tags
 
 The user has no prior experience with git tags or GitHub Releases: **proactively explain, don't
-assume.** Whenever a change reaches a point where it is usable and worth running day to day (a
-feature confirmed working on-device, a verified bugfix, a completed migration phase), suggest
-cutting a tag: say what it will produce, propose the version number and give the exact command.
-Never create the tag without the user confirming first.
+assume.** At the end of a session, when something usable and worth running day to day was
+confirmed on-device since the last tag (a feature, a bugfix, a migration phase), suggest cutting
+one tag for all of it: say what it will produce, propose the version number and give the exact
+command. Not one tag per change. Never create the tag without the user confirming first.
 
 - **Tag** = a fixed name on a commit (`v1.2.0`). **Release** = the GitHub page tied to that tag,
   carrying the signed APK. Pushing a `v*` tag runs `.github/workflows/release.yml`, which tests,
@@ -247,6 +244,8 @@ docs and notes.
 - Be concise and direct. Lead with the answer. No flattery, no filler, no preamble, no restating the
   question, no narrating what you are about to do.
 - No trailing summaries of what the diff already shows.
+- Never name a button by its label ("Iniciar Captura") in the changelog, docs or notes. Describe
+  the action instead: "starting the capture".
 - In documents, state the finding, the evidence and the fix; drop the story of how you got there.
   If a sentence doesn't change what the reader does next, delete it.
 - Conversations happen in Portuguese. Developer-facing text (code, comments, errors, logs,
@@ -281,10 +280,11 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   may return another language than the one on screen.
 - **Video access must be "Allow all".** With "Select photos and videos" `MediaStore` hides the
   episodes and every capture ends in "Arquivo do vídeo não encontrado".
-- **The `v2.0.0` release APK could not be installed from the phone.** In Brazil, Play Protect's
-  fraud protection blocks a downloaded APK that declares a notification listener, with no "install
-  anyway" button. `v2.1.0` dropped the listener, but whether the block went with it is unconfirmed
-  until a release APK is installed from the phone. The way around is `adb install -r` from the PC.
+- **Never declare a notification listener again.** In Brazil, Play Protect's fraud protection
+  blocked the downloaded `v2.0.0` APK for it, with no "install anyway" button. `v2.1.0` dropped the
+  listener and installs from the phone, behind a warning that offers "install anyway".
+- **The service notification is off unless the user turns it on.** `POST_NOTIFICATIONS` is declared
+  but not requested, so the notification only shows after being enabled in the app's settings.
 - **A tap right after VLC was closed fails once.** The connection to VLC is suspended when its
   service stops. That tap says "Nenhum vídeo aberto no VLC" and reconnects, the next one works.
 - **VLC announces a new video with a zero duration first.** A playback without a duration MUST be
