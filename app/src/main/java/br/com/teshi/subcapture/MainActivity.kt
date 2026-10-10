@@ -17,13 +17,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
-private val runtimePermissions = listOf(
-    Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.READ_MEDIA_VIDEO
-)
-
 class MainActivity : ComponentActivity() {
-    private val runtimePermissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { OverlayService.start(this) }
+    private val videoPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { OverlayService.start(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,11 +45,8 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             return
         }
-        val missingPermissions = runtimePermissions.filter {
-            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missingPermissions.isNotEmpty()) {
-            runtimePermissionsLauncher.launch(missingPermissions.toTypedArray())
+        if (checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+            videoPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
             return
         }
         OverlayService.start(this)
