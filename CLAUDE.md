@@ -33,6 +33,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `MatroskaSubtitleReader.kt` | Pure reader of the first text subtitle track of an `.mkv`. |
 | `SubtitleCueText.kt` | Pure cleanup of SubRip and ASS cue payloads into plain text. |
 | `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
+| `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line or the failure. Replaced by the next tap. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, pulse animation, saved position. |
 | `OverlayButtonGeometry.kt` | Pure tap-versus-drag and snap-target math. |
 
@@ -48,13 +49,14 @@ Data flow:
 4. It finds the file in `MediaStore` by duration (within 1s), using the title to choose among
    several, and reads the cues of its first text subtitle track. The cues of the last file stay in
    memory, so only the first capture of an episode reads the file.
-5. The line on screen at that position is prepended to `SentenceStore`, which persists it. Lines
-   on screen together are joined with " / ". With none on screen it takes a line starting within
-   500ms, else the last one that ended within 5s, else nothing is added and a toast says so.
+5. The line on screen at that position is prepended to `SentenceStore`, which persists it, and
+   shown in a bubble over the video so the user can check it against the screen. Lines on screen
+   together are joined with " / ". With none on screen it takes a line starting within 500ms, else
+   the last one that ended within 5s, else nothing is added and the bubble says so.
 6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
-the user as a short toast. The debug build also logs each capture's position, file and line there.
+the user in the same bubble. The debug build also logs each capture's position, file and line there.
 
 ## Working Methodology
 
@@ -132,7 +134,7 @@ First-run permissions on the device:
    go back and tap again. For the debug build it can be granted from the PC:
    `adb shell cmd notification allow_listener br.com.teshi.subcapture.debug/br.com.teshi.subcapture.VlcSessionListener`
 3. **Notifications** (`POST_NOTIFICATIONS`): requested by "Iniciar Captura" when missing. A refusal
-   does not block the capture, it only hides the toasts and the service notification.
+   does not block the capture, it only hides the service notification.
 4. **Videos** (`READ_MEDIA_VIDEO`): requested by "Iniciar Captura" when missing. Choose "Allow all".
 
 There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
@@ -282,9 +284,9 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   restricted setting for apps installed from a downloaded APK. Open the app's info screen, then
   the three-dot menu, then "Allow restricted settings". Builds installed with `adb` are not
   affected.
-- **Toasts from `OverlayService` need the notification permission.** Android silently drops toasts
-  from an app that is not in front when its notifications are blocked, and during a capture the
-  video app is in front.
+- **Toasts are unreliable from `OverlayService`.** Android rate-limits and queues toasts from an
+  app that is not in front: seen on-device, most capture toasts never appeared. Feedback during a
+  capture goes through `CaptureFeedbackBubble` instead.
 - **The overlay button position persists** in `SharedPreferences` (`overlay_button_position`)
   across app restarts. If the button seems lost, check it didn't snap off-screen on a device with a
   different resolution.

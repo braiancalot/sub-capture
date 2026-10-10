@@ -37,6 +37,7 @@ class OverlayService : Service() {
     private val vlcSubtitleCapture = VlcSubtitleCapture(this)
     private val captureScope = MainScope()
     private var floatingCaptureButton: FloatingCaptureButton? = null
+    private var captureFeedbackBubble: CaptureFeedbackBubble? = null
     private var isCapturing = false
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -45,6 +46,7 @@ class OverlayService : Service() {
         super.onCreate()
         startForeground(NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle).also { it.show() }
+        captureFeedbackBubble = CaptureFeedbackBubble(this)
         runningState.value = true
     }
 
@@ -54,6 +56,7 @@ class OverlayService : Service() {
         super.onDestroy()
         captureScope.cancel()
         floatingCaptureButton?.remove()
+        captureFeedbackBubble?.remove()
         runningState.value = false
     }
 
@@ -87,16 +90,17 @@ class OverlayService : Service() {
     private fun finishCaptureWithSubtitle(subtitle: String?) {
         finishCapture()
         if (subtitle == null) {
-            showToast("Nenhuma legenda neste ponto")
+            captureFeedbackBubble?.show("Nenhuma legenda neste ponto")
             return
         }
         sentenceStore.prepend(subtitle)
+        captureFeedbackBubble?.show(subtitle)
     }
 
     private fun finishCaptureWithError(userMessage: String, reason: String) {
         finishCapture()
         Log.e(LOG_TAG, "capture failed: $reason")
-        showToast(userMessage)
+        captureFeedbackBubble?.show(userMessage)
     }
 
     private fun finishCapture() {

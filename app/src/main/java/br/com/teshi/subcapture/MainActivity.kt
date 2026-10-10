@@ -22,7 +22,6 @@ private val runtimePermissions = listOf(
 )
 
 class MainActivity : ComponentActivity() {
-    // Without POST_NOTIFICATIONS Android drops the service's toasts while another app is in front
     private val runtimePermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { OverlayService.start(this) }
 
