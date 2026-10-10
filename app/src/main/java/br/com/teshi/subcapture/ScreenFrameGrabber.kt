@@ -23,20 +23,32 @@ class ScreenFrameGrabber(
     private val mainHandler = Handler(Looper.getMainLooper())
     private val captureThread = HandlerThread("ScreenCapture").apply { start() }
     private val captureHandler = Handler(captureThread.looper)
-    private val imageReader = ImageReader.newInstance(
-        displayMetrics.widthPixels, displayMetrics.heightPixels, PixelFormat.RGBA_8888, 2
-    )
+    private val densityDpi = displayMetrics.densityDpi
+    private var imageReader = newImageReader(displayMetrics.widthPixels, displayMetrics.heightPixels)
     private val virtualDisplay: VirtualDisplay?
 
     init {
         // Android 14+ REQUIRES the callback to be registered before createVirtualDisplay
         mediaProjection.registerCallback(object : MediaProjection.Callback() {
             override fun onStop(): Unit = onProjectionStopped()
+
+            override fun onCapturedContentResize(width: Int, height: Int): Unit = resizeCapture(width, height)
         }, mainHandler)
         virtualDisplay = mediaProjection.createVirtualDisplay(
-            "SubCapture", displayMetrics.widthPixels, displayMetrics.heightPixels, displayMetrics.densityDpi,
+            "SubCapture", imageReader.width, imageReader.height, densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, imageReader.surface, null, null
         )
+    }
+
+    private fun resizeCapture(width: Int, height: Int) {
+        if (width == imageReader.width && height == imageReader.height) return
+        val staleReader = imageReader
+        imageReader = newImageReader(width, height)
+        virtualDisplay?.resize(width, height, densityDpi)
+        virtualDisplay?.surface = imageReader.surface
+        staleReader.setOnImageAvailableListener(null, null)
+        // Closing on the capture thread keeps it from racing a frame still being copied there
+        captureHandler.post { staleReader.close() }
     }
 
     fun grabFrame(onFrame: (Bitmap) -> Unit, onFailure: (String) -> Unit) {
@@ -77,6 +89,9 @@ class ScreenFrameGrabber(
         mediaProjection.stop()
     }
 }
+
+private fun newImageReader(width: Int, height: Int): ImageReader =
+    ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
 
 private fun imageToBitmap(image: Image): Bitmap {
     val plane = image.planes[0]
