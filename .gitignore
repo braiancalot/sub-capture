@@ -18,3 +18,6 @@ local.properties
 
 # working notes
 .scratch/
+
+# frames pulled from the debug build
+frames/
