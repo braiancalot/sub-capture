@@ -3,14 +3,16 @@
 ## Cut a version
 
 1. The change is on `main`, pushed, CI green, and tested on the device with the debug build.
-2. Tag and push:
+2. `CHANGELOG.md` has a `## [1.2.0] - YYYY-MM-DD` section for the version, committed and pushed. The
+   workflow publishes that section as the release notes and fails before building without it.
+3. Tag and push:
    ```bash
    git tag v1.2.0
    git push origin v1.2.0
    ```
-3. The Release workflow (Actions tab) takes a few minutes. It runs the unit tests, builds the
+4. The Release workflow (Actions tab) takes a few minutes. It runs the unit tests, builds the
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
-4. On the phone, open the Release page, download the APK and install it over the previous version.
+5. On the phone, open the Release page, download the APK and install it over the previous version.
 
 Google Play Protect blocks the install with a warning, because the APK comes from outside the Play
 Store and asks for screen capture and overlay permissions. Seen on `v1.1.0`. Choose to install

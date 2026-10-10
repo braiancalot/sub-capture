@@ -15,6 +15,14 @@ jobs:
         with:
           # versionCode is the commit count, which a shallow clone reports as 1
           fetch-depth: 0
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v heading="## [$version]" 'index($0, heading) == 1 { found = 1; next } /^## \[/ { found = 0 } found' CHANGELOG.md > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "CHANGELOG.md has no section starting with '## [$version]'" >&2
+            exit 1
+          fi
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -32,6 +40,6 @@ jobs:
       - name: Publish GitHub Release
         run: |
           cp app/build/outputs/apk/release/app-release.apk "SubCapture-$GITHUB_REF_NAME.apk"
-          gh release create "$GITHUB_REF_NAME" "SubCapture-$GITHUB_REF_NAME.apk" --title "$GITHUB_REF_NAME" --generate-notes
+          gh release create "$GITHUB_REF_NAME" "SubCapture-$GITHUB_REF_NAME.apk" --title "$GITHUB_REF_NAME" --notes-file release-notes.md
         env:
           GH_TOKEN: ${{ github.token }}

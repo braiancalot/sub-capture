@@ -170,6 +170,9 @@ Never create the tag without the user confirming first.
   builds, signs and publishes it. Steps and recovery are in `docs/runbook-release.md`.
 - `versionName` is the tag without the `v`, `versionCode` is the commit count. Neither is edited by
   hand.
+- `CHANGELOG.md` gets a section per version, written for someone using the app, not for someone
+  reading the code. Write it when proposing the tag and commit it before the tag: the workflow
+  publishes that section as the release notes and fails without it.
 - Versioning is `vMAJOR.MINOR.PATCH`: PATCH for a bugfix, MINOR for a new feature, MAJOR for a
   breaking rework (the Kotlin/Compose migration was `v1.0.0`, reading subtitles from the file
   instead of OCR is `v2.0.0`). `v0.1.0` marks the last React Native version and `v1.1.1` the last
