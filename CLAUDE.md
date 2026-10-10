@@ -94,8 +94,15 @@ QA.
 adb logcat -s OverlayService   # capture failures, with the concrete reason
 ```
 
-No format command is configured. The debug build is signed with the tracked
-`app/debug.keystore`.
+No format command is configured.
+
+Two builds coexist on the device as separate apps, each with its own list and permissions:
+
+- **Debug** (`installDebug`): id `br.com.teshi.subcapture.debug`, label "SubCapture Debug", signed
+  with the machine's default debug key. For testing changes.
+- **Release**: id `br.com.teshi.subcapture`, label "SubCapture", signed with the release key. Built
+  only by GitHub Actions, see Releases & Tags. `assembleRelease` fails locally by design, because
+  the keystore is not on the machine.
 
 Environment: Android Studio (or the Android SDK command-line tools, with `JAVA_HOME` pointing at a
 JDK 17 or newer) plus a device or emulator with Google Play services, which ML Kit needs. A
@@ -114,8 +121,8 @@ First-run permissions on the device:
    does not block the capture, it only hides the toasts and the service notification.
 3. **Screen capture**: requested by tapping "Iniciar Captura".
 
-There is no deployment. The app is installed straight onto the user's device; see Releases & Tags
-for versioned builds.
+There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
+installed by hand.
 
 ## Testing
 
@@ -138,7 +145,10 @@ cutting a tag: say what it will produce, propose the version number and give the
 Never create the tag without the user confirming first.
 
 - **Tag** = a fixed name on a commit (`v1.2.0`). **Release** = the GitHub page tied to that tag,
-  carrying the built APK once a GitHub Actions release workflow exists to build and attach it.
+  carrying the signed APK. Pushing a `v*` tag runs `.github/workflows/release.yml`, which tests,
+  builds, signs and publishes it. Steps and recovery are in `docs/runbook-release.md`.
+- `versionName` is the tag without the `v`, `versionCode` is the commit count. Neither is edited by
+  hand.
 - Versioning is `vMAJOR.MINOR.PATCH`: PATCH for a bugfix, MINOR for a new feature, MAJOR for a
   breaking rework (the Kotlin/Compose migration lands as `v1.0.0`). `v0.1.0` marks the last React
   Native version, tagged as a rollback point before that migration.
