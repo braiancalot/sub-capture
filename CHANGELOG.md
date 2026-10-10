@@ -5,6 +5,23 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.2.0] - 2026-10-10
+
+### Added
+
+- The app is now in English and Portuguese. It follows the phone's language, and the language can
+  also be chosen for this app alone in the system settings.
+
+### Changed
+
+- The app no longer asks for the notification permission. The notification shown while the capture
+  is running stays off unless it is turned on in the app's settings.
+
+### Fixed
+
+- A tap on the floating button while VLC's player was closed said there was no subtitle at that
+  point. It now says that no video is open.
+
 ## [2.1.0] - 2026-10-10
 
 ### Changed
