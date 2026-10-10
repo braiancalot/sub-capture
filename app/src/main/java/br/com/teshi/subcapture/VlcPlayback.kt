@@ -11,14 +11,22 @@ private val VLC_PLAYBACK_SERVICE = ComponentName("org.videolan.vlc", "org.videol
 
 data class VlcPlayback(val title: String, val durationMillis: Long, val positionMillis: Long)
 
-class VlcConnection(private val context: Context) {
+class VlcConnection(private val context: Context, private val onVideoChanged: () -> Unit) {
     private var mediaBrowser: MediaBrowser? = null
     private var mediaController: MediaController? = null
+
+    private val metadataCallback = object : MediaController.Callback() {
+        override fun onMetadataChanged(metadata: MediaMetadata?) {
+            onVideoChanged()
+        }
+    }
 
     private val connectionCallback = object : MediaBrowser.ConnectionCallback() {
         override fun onConnected() {
             mediaController = mediaBrowser?.let { MediaController(context, it.sessionToken) }
+            mediaController?.registerCallback(metadataCallback)
             if (context.isDebuggableBuild) Log.d(CAPTURE_LOG_TAG, "connected to $VLC_PLAYBACK_SERVICE")
+            onVideoChanged()
         }
 
         override fun onConnectionSuspended() {
@@ -40,6 +48,7 @@ class VlcConnection(private val context: Context) {
     }
 
     fun disconnect() {
+        mediaController?.unregisterCallback(metadataCallback)
         mediaBrowser?.disconnect()
         mediaBrowser = null
         mediaController = null
@@ -49,9 +58,12 @@ class VlcConnection(private val context: Context) {
         val vlcSession = mediaController ?: return null
         val positionMillis = vlcSession.playbackState?.position ?: return null
         val metadata = vlcSession.metadata ?: return null
+        val durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION)
+        // VLC reports the new title before the duration, and a zero duration matches sub-second clips
+        if (durationMillis <= 0) return null
         return VlcPlayback(
             title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty(),
-            durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION),
+            durationMillis = durationMillis,
             positionMillis = positionMillis,
         )
     }

@@ -1,8 +1,12 @@
 package br.com.teshi.subcapture
 
 import android.content.Context
+import android.util.Log
 import java.io.IOException
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class SubtitleCaptureFailure(val userMessage: String, reason: String) : Exception(reason)
@@ -13,12 +17,24 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
     private var cachedVideoFile: VideoFileEntry? = null
     private var cachedCues: List<SubtitleCue> = emptyList()
 
+    // A tap during the preload MUST wait for it instead of reading the same file a second time
+    private val cuesMutex = Mutex()
+
     suspend fun subtitleOnScreen(): SubtitleCapture {
         val playback = readPlayback()
         return withContext(Dispatchers.IO) {
             val videoFile = findVideoFile(playback)
-            val subtitle = subtitleAt(cuesOf(videoFile), playback.positionMillis)
+            val cues = cuesMutex.withLock { cuesOf(videoFile) }
+            val subtitle = subtitleAt(cues, playback.positionMillis)
             SubtitleCapture(subtitle, playback.positionMillis, videoFile.displayName)
+        }
+    }
+
+    suspend fun preloadCues() {
+        val playback = vlcConnection.currentPlayback() ?: return
+        withContext(Dispatchers.IO) {
+            val videoFile = findVideoFile(playback)
+            cuesMutex.withLock { cuesOf(videoFile) }
         }
     }
 
@@ -30,7 +46,7 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
             )
         }
         return vlcConnection.currentPlayback() ?: throw SubtitleCaptureFailure(
-            "Nenhum vídeo aberto no VLC", "VLC's media session has no playback state or no metadata"
+            "Nenhum vídeo aberto no VLC", "VLC's media session has no playback state, no metadata or no duration yet"
         )
     }
 
@@ -44,10 +60,13 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
 
     private fun cuesOf(videoFile: VideoFileEntry): List<SubtitleCue> {
         if (videoFile == cachedVideoFile) return cachedCues
-        val cues = try {
-            context.readSubtitleCuesOf(videoFile)
+        val (cues, readingTime) = try {
+            measureTimedValue { context.readSubtitleCuesOf(videoFile) }
         } catch (error: IOException) {
             throw SubtitleCaptureFailure("Vídeo sem legenda em texto", "${videoFile.displayName}: ${error.message}")
+        }
+        if (context.isDebuggableBuild) {
+            Log.d(CAPTURE_LOG_TAG, "read ${cues.size} cues of ${videoFile.displayName} in $readingTime")
         }
         cachedVideoFile = videoFile
         cachedCues = cues

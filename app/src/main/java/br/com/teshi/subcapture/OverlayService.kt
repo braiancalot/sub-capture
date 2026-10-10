@@ -34,7 +34,7 @@ class OverlayService : Service() {
         }
     }
 
-    private val vlcConnection = VlcConnection(this)
+    private val vlcConnection = VlcConnection(this, ::preloadSubtitleCues)
     private val vlcSubtitleCapture = VlcSubtitleCapture(this, vlcConnection)
     private val captureScope = MainScope()
     private var floatingCaptureButton: FloatingCaptureButton? = null
@@ -73,6 +73,16 @@ class OverlayService : Service() {
             .setContentText("Toque no botão flutuante para capturar legendas")
             .setSmallIcon(R.drawable.subcapture_mark)
             .build()
+    }
+
+    private fun preloadSubtitleCues() {
+        captureScope.launch {
+            try {
+                vlcSubtitleCapture.preloadCues()
+            } catch (failure: SubtitleCaptureFailure) {
+                Log.e(CAPTURE_LOG_TAG, "preload failed: ${failure.message}")
+            }
+        }
     }
 
     private fun captureSubtitle() {
