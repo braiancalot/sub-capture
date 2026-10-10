@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val commitCount: Int = providers.exec { commandLine("git", "rev-list", "--count", "HEAD") }
+    .standardOutput.asText.get().trim().toInt()
+val releaseKeystorePassword: String? = providers.environmentVariable("RELEASE_KEYSTORE_PASSWORD").orNull
+
 android {
     namespace = "br.com.teshi.subcapture"
     compileSdk = 37
@@ -11,16 +15,26 @@ android {
         applicationId = "br.com.teshi.subcapture"
         minSdk = 34
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = commitCount
+        versionName = providers.gradleProperty("releaseVersionName").getOrElse("dev")
     }
 
     signingConfigs {
-        getByName("debug") {
-            storeFile = file("debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+        create("release") {
+            storeFile = providers.environmentVariable("RELEASE_KEYSTORE_PATH").orNull?.let(::file)
+            storePassword = releaseKeystorePassword
+            keyAlias = "subcapture"
+            keyPassword = releaseKeystorePassword
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
+        release {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
