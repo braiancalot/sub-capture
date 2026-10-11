@@ -108,7 +108,7 @@ class OverlayService : Service() {
             captureFeedbackBubble?.show(getString(R.string.capture_no_subtitle_at_position))
             return
         }
-        sentenceStore.prepend(subtitle)
+        sentenceStore.prepend(subtitle, System.currentTimeMillis())
         captureFeedbackBubble?.show(subtitle)
     }
 

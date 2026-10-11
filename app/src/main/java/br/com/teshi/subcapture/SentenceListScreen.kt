@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun SentenceListScreen(
-    sentences: List<String>,
+    sentences: List<CapturedSentence>,
     isOverlayRunning: Boolean,
     onToggleCapture: () -> Unit,
     onDeleteSentence: (Int) -> Unit,
@@ -49,7 +49,7 @@ fun SentenceListScreen(
 
 @Composable
 private fun SentenceSelectionBar(
-    sentences: List<String>,
+    sentences: List<CapturedSentence>,
     selection: MutableState<Set<Int>>,
     onCopyText: (String) -> Unit,
 ) {
@@ -58,7 +58,7 @@ private fun SentenceSelectionBar(
         onCancel = { selection.value = emptySet() },
         onSelectAll = { selection.value = sentences.indices.toSet() },
         onCopy = {
-            onCopyText(chronologicalSelectionText(sentences, selection.value))
+            onCopyText(chronologicalSelectionText(sentences.map { it.text }, selection.value))
             selection.value = emptySet()
         },
     )
@@ -98,7 +98,7 @@ private fun CaptureToggleButton(isOverlayRunning: Boolean, onToggleCapture: () -
 
 @Composable
 private fun SentenceList(
-    sentences: List<String>,
+    sentences: List<CapturedSentence>,
     selectedIndices: Set<Int>,
     onToggleSelected: (Int) -> Unit,
     onDeleteSentence: (Int) -> Unit,
@@ -109,8 +109,8 @@ private fun SentenceList(
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         itemsIndexed(sentences) { index, sentence ->
             SentenceRow(
-                sentence, isSelecting, index in selectedIndices,
-                onTap = { if (isSelecting) onToggleSelected(index) else onCopyText(sentence) },
+                sentence.text, isSelecting, index in selectedIndices,
+                onTap = { if (isSelecting) onToggleSelected(index) else onCopyText(sentence.text) },
                 onLongPress = { onToggleSelected(index) },
                 onDelete = { onDeleteSentence(index) },
             )

@@ -10,45 +10,49 @@ class SentenceStoreTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
-    private val sentencesFile: File by lazy { File(temporaryFolder.root, "sentences.json") }
+    private val sentencesFile: File by lazy { File(temporaryFolder.root, "captures.json") }
+
+    private fun savedTexts(): List<String> = SentenceStore(sentencesFile).sentences.value.map { it.text }
 
     @Test
     fun `starts empty when the file does not exist`() {
-        assertEquals(emptyList<String>(), SentenceStore(sentencesFile).sentences.value)
+        assertEquals(emptyList<CapturedSentence>(), SentenceStore(sentencesFile).sentences.value)
     }
 
     @Test
-    fun `reads a saved list with escaped quotes`() {
-        sentencesFile.writeText("""["newest","say \"hi\""]""")
+    fun `reads a saved list with escaped quotes and no marked words`() {
+        sentencesFile.writeText("""[{"text":"say \"hi\"","capturedAtMillis":1700000000000}]""")
 
-        assertEquals(listOf("newest", "say \"hi\""), SentenceStore(sentencesFile).sentences.value)
+        val expected = listOf(CapturedSentence("say \"hi\"", 1700000000000, emptySet()))
+        assertEquals(expected, SentenceStore(sentencesFile).sentences.value)
     }
 
     @Test
-    fun `prepend puts the newest sentence first and persists it`() {
+    fun `prepend puts the newest sentence first and persists it with its capture time`() {
         val sentenceStore = SentenceStore(sentencesFile)
-        sentenceStore.prepend("first")
-        sentenceStore.prepend("second")
+        sentenceStore.prepend("first", capturedAtMillis = 1000)
+        sentenceStore.prepend("second", capturedAtMillis = 2000)
 
-        assertEquals(listOf("second", "first"), sentenceStore.sentences.value)
-        assertEquals(listOf("second", "first"), SentenceStore(sentencesFile).sentences.value)
+        val expected = listOf(CapturedSentence("second", 2000), CapturedSentence("first", 1000))
+        assertEquals(expected, sentenceStore.sentences.value)
+        assertEquals(expected, SentenceStore(sentencesFile).sentences.value)
     }
 
     @Test
     fun `prepend ignores a sentence that is already in the list`() {
         val sentenceStore = SentenceStore(sentencesFile)
-        listOf("first", "second", "first").forEach(sentenceStore::prepend)
+        listOf("first", "second", "first").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
 
-        assertEquals(listOf("second", "first"), sentenceStore.sentences.value)
+        assertEquals(listOf("second", "first"), sentenceStore.sentences.value.map { it.text })
     }
 
     @Test
     fun `removeAt deletes only that position and persists it`() {
         val sentenceStore = SentenceStore(sentencesFile)
-        listOf("first", "second", "third").forEach(sentenceStore::prepend)
+        listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
 
         sentenceStore.removeAt(1)
 
-        assertEquals(listOf("third", "first"), SentenceStore(sentencesFile).sentences.value)
+        assertEquals(listOf("third", "first"), savedTexts())
     }
 }

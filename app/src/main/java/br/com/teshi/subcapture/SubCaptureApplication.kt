@@ -7,7 +7,7 @@ import android.widget.Toast
 import java.io.File
 
 class SubCaptureApplication : Application() {
-    val sentenceStore: SentenceStore by lazy { SentenceStore(File(filesDir, "sentences.json")) }
+    val sentenceStore: SentenceStore by lazy { SentenceStore(File(filesDir, "captures.json")) }
 }
 
 val Context.sentenceStore: SentenceStore
