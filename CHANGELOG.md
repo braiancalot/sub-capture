@@ -5,6 +5,16 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.4.0] - 2026-10-11
+
+### Added
+
+- A Quick Settings tile starts and stops the capture without opening the app. Add it once from the
+  edit screen of the quick settings panel. When a permission is missing, the tile opens the app.
+- The capture can be stopped from the floating button: while it is dragged, a close target appears
+  at the bottom of the screen, and dropping the button on it stops the capture. The target turns
+  red when the button is close enough.
+
 ## [2.3.0] - 2026-10-11
 
 Updating starts with an empty list: captures saved by earlier versions are not carried over.
