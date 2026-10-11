@@ -6,9 +6,11 @@
   <string name="day_today">Today</string>
   <string name="day_yesterday">Yesterday</string>
   <string name="day_with_capture_count" translatable="false">%1$s · %2$d</string>
-  <string name="selection_cancel">Cancel</string>
+  <string name="delete_selected">Delete selected</string>
+  <string name="selection_one_selected">selected</string>
+  <string name="selection_several_selected">selected</string>
   <string name="selection_select_all">All</string>
-  <string name="selection_copy_count">Copy %1$d</string>
+  <string name="selection_copy">Copy</string>
   <string name="overlay_permission_needed">Allow display over other apps, then tap again</string>
   <string name="capture_no_subtitle_at_position">No subtitle at this point</string>
   <string name="capture_no_video_in_vlc">No video open in VLC</string>

@@ -26,8 +26,8 @@ class SentenceStore(private val sentencesFile: File) {
         replaceWith(listOf(CapturedSentence(text, capturedAtMillis)) + newestFirstSentences.value)
     }
 
-    fun removeAt(index: Int) {
-        replaceWith(newestFirstSentences.value.filterIndexed { position, _ -> position != index })
+    fun removeAll(indices: Set<Int>) {
+        replaceWith(newestFirstSentences.value.filterIndexed { position, _ -> position !in indices })
     }
 
     fun toggleMarkedWord(index: Int, wordIndex: Int) {

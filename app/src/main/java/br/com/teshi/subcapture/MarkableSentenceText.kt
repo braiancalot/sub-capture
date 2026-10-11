@@ -14,10 +14,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-private val markedWordStyle = SpanStyle(color = MarkedWordAmber, fontWeight = FontWeight.Bold)
+// Color only: a heavier weight widens the word and pushes the rest of the line
+private val markedWordStyle = SpanStyle(color = AccentLavender, background = AccentTint)
 
 @Composable
 fun MarkableSentenceText(
@@ -38,8 +38,8 @@ fun MarkableSentenceText(
                 onTap = { position -> currentOnTapWord(tappedWordIndex(textLayout.value, words, position)) },
             )
         },
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
+        fontSize = 17.sp,
+        lineHeight = 26.sp,
         onTextLayout = { textLayout.value = it },
     )
 }

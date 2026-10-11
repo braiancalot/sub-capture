@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     sentences = sentences,
                     isOverlayRunning = isOverlayRunning,
                     onToggleCapture = { if (isOverlayRunning) OverlayService.stop(this) else requestCapture() },
-                    onDeleteSentence = sentenceStore::removeAt,
+                    onDeleteSentences = sentenceStore::removeAll,
                     onToggleMarkedWord = sentenceStore::toggleMarkedWord,
                     onCopyText = ::copyToClipboard,
                 )

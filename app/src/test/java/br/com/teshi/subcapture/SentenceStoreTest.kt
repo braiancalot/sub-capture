@@ -58,11 +58,11 @@ class SentenceStoreTest {
     }
 
     @Test
-    fun `removeAt deletes only that position and persists it`() {
+    fun `removeAll deletes only those positions and persists it`() {
         val sentenceStore = SentenceStore(sentencesFile)
-        listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
+        listOf("first", "second", "third", "fourth").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
 
-        sentenceStore.removeAt(1)
+        sentenceStore.removeAll(setOf(0, 2))
 
         assertEquals(listOf("third", "first"), savedTexts())
     }

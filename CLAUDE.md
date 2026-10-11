@@ -6,7 +6,7 @@
 so lines can be copied out as text instead of retyped. Personal use, single user. Tap a floating
 button during playback: the app asks VLC where the video is, reads that moment's line from the
 subtitle track inside the video file and adds it to a list, grouped by day. In the list, tap a word
-to mark it as the one being learned, or long-press to select lines and copy them as
+to mark it as the one being learned, or long-press to select lines and copy or delete them. Copies are
 newline-separated text. Android only. It works
 for local `.mkv` files with a text subtitle track (SubRip or ASS).
 
@@ -22,8 +22,8 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | File | Role |
 | --- | --- |
 | `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, copies to the clipboard. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy, delete. Selection state lives in the composable. |
-| `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in amber. |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy or delete. Selection only recolors the card, so nothing moves. Selection state lives in the composable. Colors, gutter, gap and radius come from the design system tokens and are named once in `SubCaptureTheme.kt`. |
+| `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in the accent color, never in bold, which would shift the line. |
 | `SentenceWords.kt` | Pure split of a line into words, and the word under a tapped character. |
 | `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day, and the label drawn above each day. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
