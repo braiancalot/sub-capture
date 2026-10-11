@@ -5,8 +5,9 @@
 **SubCapture** is an Android app that saves the subtitle line on screen while a video plays in VLC,
 so lines can be copied out as text instead of retyped. Personal use, single user. Tap a floating
 button during playback: the app asks VLC where the video is, reads that moment's line from the
-subtitle track inside the video file and adds it to a list. From the list, tap one line to copy it,
-or long-press to multi-select and copy several as newline-separated text. Android only. It works
+subtitle track inside the video file and adds it to a list, grouped by day. In the list, tap a word
+to mark it as the one being learned, or long-press to select lines and copy them as
+newline-separated text. Android only. It works
 for local `.mkv` files with a text subtitle track (SubRip or ASS).
 
 Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). VLC's media session, reached
@@ -21,10 +22,13 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | File | Role |
 | --- | --- |
 | `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, copies to the clipboard. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, tap to copy, long-press multi-select, delete. Selection state lives in the composable. |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy, delete. Selection state lives in the composable. |
+| `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in amber. |
+| `SentenceWords.kt` | Pure split of a line into words, and the word under a tapped character. |
+| `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day, and the label drawn above each day. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files. |
-| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/sentences.json`. |
+| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time and the marked word positions. A text already in the list is not added again. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
 | `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file, preloaded when VLC changes video), line. Turns each failure into a `SubtitleCaptureFailure` carrying the toast text and the log reason. |
 | `VlcPlayback.kt` | Connects to VLC's `MediaBrowserService`, reads title, duration and position from its media session and reports when VLC changes video. |
@@ -150,8 +154,8 @@ installed by hand.
 
 JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
 above. Covered: the Matroska subtitle reader, the cue text cleanup, the lookup by position, the
-file matching, the overlay button geometry, the selection copy text and `SentenceStore` against a
-`TemporaryFolder`.
+file matching, the overlay button geometry, the selection copy text, the split into words, the
+grouping by day and `SentenceStore` against a `TemporaryFolder`.
 
 The reader is tested against `.mkv` fixtures of a few KB in `app/src/test/resources/`: black video,
 silent audio and invented lines, generated with ffmpeg. Real episodes never go into the repository.

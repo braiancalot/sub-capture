@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 val CaptureBlue = Color(0xFF1565C0)
 val StopRed = Color(0xFFB71C1C)
 val SelectedRowBackground = Color(0xFF1A2A3A)
+val MarkedWordAmber = Color(0xFFE0A96D)
 val MutedText = Color(0xFF888888)
 val FaintText = Color(0xFF555555)
 

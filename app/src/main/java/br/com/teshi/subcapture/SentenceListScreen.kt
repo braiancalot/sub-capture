@@ -34,6 +34,7 @@ fun SentenceListScreen(
     isOverlayRunning: Boolean,
     onToggleCapture: () -> Unit,
     onDeleteSentence: (Int) -> Unit,
+    onToggleMarkedWord: (Int, Int) -> Unit,
     onCopyText: (String) -> Unit,
 ) {
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
@@ -43,7 +44,7 @@ fun SentenceListScreen(
         Column(Modifier.fillMaxSize().padding(innerPadding)) {
             ScreenHeader()
             CaptureToggleButton(isOverlayRunning, onToggleCapture)
-            SentenceList(sentences, selection.value, toggleSelected, onDeleteSentence, onCopyText)
+            SentenceList(sentences, selection.value, toggleSelected, onDeleteSentence, onToggleMarkedWord)
         }
     }
 }
@@ -103,7 +104,7 @@ private fun SentenceList(
     selectedIndices: Set<Int>,
     onToggleSelected: (Int) -> Unit,
     onDeleteSentence: (Int) -> Unit,
-    onCopyText: (String) -> Unit,
+    onToggleMarkedWord: (Int, Int) -> Unit,
 ) {
     if (sentences.isEmpty()) return EmptyListMessage()
     val isSelecting = selectedIndices.isNotEmpty()
@@ -112,9 +113,10 @@ private fun SentenceList(
         itemsIndexed(sentences) { index, sentence ->
             dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
-                sentence.text, isSelecting, index in selectedIndices,
-                onTap = { if (isSelecting) onToggleSelected(index) else onCopyText(sentence.text) },
+                sentence, isSelecting, index in selectedIndices,
+                onTap = { if (isSelecting) onToggleSelected(index) },
                 onLongPress = { onToggleSelected(index) },
+                onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
                 onDelete = { onDeleteSentence(index) },
             )
         }

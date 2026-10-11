@@ -28,13 +28,15 @@ private val rowShape = RoundedCornerShape(8.dp)
 
 @Composable
 fun SentenceRow(
-    sentence: String,
+    sentence: CapturedSentence,
     isSelecting: Boolean,
     isSelected: Boolean,
     onTap: () -> Unit,
     onLongPress: () -> Unit,
+    onToggleWord: (Int) -> Unit,
     onDelete: () -> Unit,
 ) {
+    val onTapWord = { wordIndex: Int? -> if (isSelecting) onTap() else wordIndex?.let(onToggleWord) ?: Unit }
     val rowModifier = Modifier.fillMaxWidth().clip(rowShape)
         .combinedClickable(onClick = onTap, onLongClick = onLongPress)
     val rowColor = if (isSelected) SelectedRowBackground else MaterialTheme.colorScheme.surface
@@ -42,7 +44,7 @@ fun SentenceRow(
     Surface(rowModifier, rowShape, rowColor, border = rowBorder) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             if (isSelecting) SelectionCheckbox(isSelected)
-            Text(sentence, modifier = Modifier.weight(1f), fontSize = 16.sp, lineHeight = 22.sp)
+            MarkableSentenceText(sentence, Modifier.weight(1f), onTapWord, onLongPress)
             if (!isSelecting) DeleteButton(onDelete)
         }
     }

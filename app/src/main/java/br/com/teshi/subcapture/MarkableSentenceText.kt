@@ -1,0 +1,61 @@
+package br.com.teshi.subcapture
+
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+private val markedWordStyle = SpanStyle(color = MarkedWordAmber, fontWeight = FontWeight.Bold)
+
+@Composable
+fun MarkableSentenceText(
+    sentence: CapturedSentence,
+    modifier: Modifier,
+    onTapWord: (Int?) -> Unit,
+    onLongPress: () -> Unit,
+) {
+    val words = remember(sentence.text) { sentenceWordsOf(sentence.text) }
+    val textLayout = remember { mutableStateOf<TextLayoutResult?>(null) }
+    val currentOnTapWord by rememberUpdatedState(onTapWord)
+    val currentOnLongPress by rememberUpdatedState(onLongPress)
+    Text(
+        text = markedSentenceText(sentence, words),
+        modifier = modifier.pointerInput(words) {
+            detectTapGestures(
+                onLongPress = { currentOnLongPress() },
+                onTap = { position -> currentOnTapWord(tappedWordIndex(textLayout.value, words, position)) },
+            )
+        },
+        fontSize = 16.sp,
+        lineHeight = 22.sp,
+        onTextLayout = { textLayout.value = it },
+    )
+}
+
+private fun markedSentenceText(sentence: CapturedSentence, words: List<SentenceWord>): AnnotatedString =
+    buildAnnotatedString {
+        append(sentence.text)
+        sentence.markedWordIndices.mapNotNull(words::getOrNull).forEach {
+            addStyle(markedWordStyle, it.start, it.endExclusive)
+        }
+    }
+
+private fun tappedWordIndex(textLayout: TextLayoutResult?, words: List<SentenceWord>, position: Offset): Int? {
+    if (textLayout == null) return null
+    val line = textLayout.getLineForVerticalPosition(position.y)
+    // Past the end of a line the nearest offset is its last word, which the tap did not touch
+    if (position.x > textLayout.getLineRight(line)) return null
+    return wordIndexAt(words, textLayout.getOffsetForPosition(position))
+}

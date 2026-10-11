@@ -47,6 +47,17 @@ class SentenceStoreTest {
     }
 
     @Test
+    fun `toggleMarkedWord marks and unmarks words of one sentence and persists them`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        listOf("first", "second").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
+
+        listOf(2, 0, 2, 3).forEach { sentenceStore.toggleMarkedWord(index = 1, wordIndex = it) }
+
+        val saved = SentenceStore(sentencesFile).sentences.value
+        assertEquals(listOf(emptySet(), setOf(0, 3)), saved.map { it.markedWordIndices })
+    }
+
+    @Test
     fun `removeAt deletes only that position and persists it`() {
         val sentenceStore = SentenceStore(sentencesFile)
         listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }

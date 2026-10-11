@@ -30,6 +30,12 @@ class SentenceStore(private val sentencesFile: File) {
         replaceWith(newestFirstSentences.value.filterIndexed { position, _ -> position != index })
     }
 
+    fun toggleMarkedWord(index: Int, wordIndex: Int) {
+        val sentence = newestFirstSentences.value[index]
+        val marked = sentence.copy(markedWordIndices = toggledSelection(sentence.markedWordIndices, wordIndex))
+        replaceWith(newestFirstSentences.value.toMutableList().also { it[index] = marked })
+    }
+
     private fun replaceWith(updatedSentences: List<CapturedSentence>) {
         newestFirstSentences.value = updatedSentences
         sentencesFile.writeText(Json.encodeToString(sentenceListSerializer, updatedSentences))
