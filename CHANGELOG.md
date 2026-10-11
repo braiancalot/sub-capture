@@ -5,6 +5,26 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.3.0] - 2026-10-11
+
+Updating starts with an empty list: captures saved by earlier versions are not carried over.
+
+### Added
+
+- Tap a word in a captured line to mark it as the one being learned. Tap it again to unmark it.
+  Several words can be marked in the same line.
+- The list is grouped by day, with the number of captures of each day.
+- Several captures can be deleted at once: select them and use the bin in the bar at the bottom.
+
+### Changed
+
+- A new look: darker screen, a single lavender accent, rounded cards and a floating selection bar.
+- A line that is already in the list is not added a second time.
+- Copying now goes through the selection: press and hold a line, then copy. A plain tap marks a
+  word instead of copying the line.
+- Deleting moved from each line to the selection bar.
+- The back button leaves the selection instead of closing the app.
+
 ## [2.2.0] - 2026-10-10
 
 ### Added
