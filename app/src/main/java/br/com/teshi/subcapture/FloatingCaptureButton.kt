@@ -17,7 +17,11 @@ private const val POSITION_X_KEY = "button_x"
 private const val POSITION_Y_KEY = "button_y"
 
 @SuppressLint("InflateParams", "ClickableViewAccessibility")
-class FloatingCaptureButton(private val context: Context, private val onTap: () -> Unit) {
+class FloatingCaptureButton(
+    private val context: Context,
+    private val onTap: () -> Unit,
+    private val onClose: () -> Unit,
+) {
     private val windowManager = context.getSystemService(WindowManager::class.java)
     private val positionPrefs = context.getSharedPreferences(POSITION_PREFS_NAME, Context.MODE_PRIVATE)
     private val density = context.resources.displayMetrics.density
@@ -25,6 +29,7 @@ class FloatingCaptureButton(private val context: Context, private val onTap: () 
     private val overlayView: View = LayoutInflater.from(context).inflate(R.layout.overlay_layout, null)
     private val captureButton: Button = overlayView.findViewById(R.id.capture_button)
     private val layoutParams = savedPositionLayoutParams()
+    private val closeTarget = OverlayCloseTarget(context)
 
     private var pulseAnimator: ValueAnimator? = null
     private var dragStartX = 0
@@ -33,12 +38,14 @@ class FloatingCaptureButton(private val context: Context, private val onTap: () 
     private var touchStartY = 0f
 
     fun show() {
+        closeTarget.attach()
         windowManager.addView(overlayView, layoutParams)
         captureButton.setOnTouchListener { _, event -> handleTouch(event) }
     }
 
     fun remove() {
         pulseAnimator?.cancel()
+        closeTarget.detach()
         windowManager.removeView(overlayView)
     }
 
@@ -80,7 +87,7 @@ class FloatingCaptureButton(private val context: Context, private val onTap: () 
             MotionEvent.ACTION_DOWN -> beginTouch(event)
             MotionEvent.ACTION_MOVE -> dragTo(event)
             MotionEvent.ACTION_UP -> endTouch(event)
-            MotionEvent.ACTION_CANCEL -> releasePressedLook()
+            MotionEvent.ACTION_CANCEL -> cancelTouch()
             else -> return false
         }
         return true
@@ -103,18 +110,31 @@ class FloatingCaptureButton(private val context: Context, private val onTap: () 
         layoutParams.y = (dragStartY + (event.rawY - touchStartY).toInt())
             .coerceIn(0, screen.heightPixels - overlayView.height)
         windowManager.updateViewLayout(overlayView, layoutParams)
+        if (!isTapGesture(event.rawX - touchStartX, event.rawY - touchStartY)) closeTarget.show()
+        closeTarget.showCatching(closeTarget.isCatching(overlayView))
     }
 
     private fun endTouch(event: MotionEvent) {
         releasePressedLook()
+        val wasDroppedOnCloseTarget = closeTarget.isCatching(overlayView)
+        closeTarget.hide()
         if (isTapGesture(event.rawX - touchStartX, event.rawY - touchStartY)) {
             onTap()
+            return
+        }
+        if (wasDroppedOnCloseTarget) {
+            onClose()
             return
         }
         val screenWidth = context.resources.displayMetrics.widthPixels
         val targetX = snapTargetX(layoutParams.x, overlayView.width, screenWidth, edgeMargin)
         positionPrefs.edit().putInt(POSITION_X_KEY, targetX).putInt(POSITION_Y_KEY, layoutParams.y).apply()
         animateToEdge(targetX)
+    }
+
+    private fun cancelTouch() {
+        releasePressedLook()
+        closeTarget.hide()
     }
 
     private fun releasePressedLook() {

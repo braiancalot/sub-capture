@@ -18,6 +18,18 @@ class OverlayButtonGeometryTest {
     }
 
     @Test
+    fun `a button released within the catch radius of the close target is caught`() {
+        assertTrue(isWithinCatchRadius(deltaX = 30, deltaY = -40, catchRadius = 50))
+        assertTrue(isWithinCatchRadius(deltaX = 0, deltaY = 0, catchRadius = 50))
+    }
+
+    @Test
+    fun `a button released past the catch radius is not caught, even when each axis is within it`() {
+        assertFalse(isWithinCatchRadius(deltaX = 40, deltaY = 40, catchRadius = 50))
+        assertFalse(isWithinCatchRadius(deltaX = -51, deltaY = 0, catchRadius = 50))
+    }
+
+    @Test
     fun `button centered on the left half snaps to the left margin`() {
         assertEquals(16, snapTargetX(buttonX = 400, buttonWidth = 100, screenWidth = 1000, edgeMargin = 16))
     }
