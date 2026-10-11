@@ -6,15 +6,16 @@
 so lines can be copied out as text instead of retyped. Personal use, single user. Tap a floating
 button during playback: the app asks VLC where the video is, reads that moment's line from the
 subtitle track inside the video file and adds it to a list, grouped by day. In the list, tap a word
-to mark it as the one being learned, or long-press to select lines and copy or delete them. Copies are
-newline-separated text. Android only. It works
-for local `.mkv` files with a text subtitle track (SubRip or ASS).
+to mark it as the one being learned, or long-press to select lines and copy or delete them. Copies
+are newline-separated text. Android only. It works for local `.mkv` files with a text subtitle
+track (SubRip or ASS).
 
 Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). VLC's media session, reached
-through its media browser service, for the playback position; `MediaStore` to find the file; a small Matroska
-reader for the subtitle track; a `WindowManager` overlay run from a foreground service. `minSdk` is
-34, so there are no `Build.VERSION` branches. `v0.1.0` is the last React Native version and
-`v1.1.1` the last one that used screen capture and OCR, both kept as rollback points.
+through its media browser service, for the playback position; `MediaStore` to find the file; a
+small Matroska reader for the subtitle track; a `WindowManager` overlay run from a foreground
+service. `minSdk` is 34, so there are no `Build.VERSION` branches. `v0.1.0` is the last React
+Native version and `v1.1.1` the last one that used screen capture and OCR, both kept as rollback
+points.
 
 Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 `app/src/test/java/br/com/teshi/subcapture/`.
@@ -25,26 +26,31 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy or delete. Selection only recolors the card, so nothing moves. Selection state lives in the composable. Colors, gutter, gap and radius come from the design system tokens and are named once in `SubCaptureTheme.kt`. |
 | `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in the accent color, never in bold, which would shift the line. |
 | `SentenceWords.kt` | Pure split of a line into words, and the word under a tapped character. |
-| `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day, and the label drawn above each day. |
+| `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day and naming of a day relative to today, and the label drawn above each day. |
 | `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files. |
 | `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time and the marked word positions. A text already in the list is not added again. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
-| `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file, preloaded when VLC changes video), line. Turns each failure into a `SubtitleCaptureFailure` carrying the toast text and the log reason. |
-| `VlcPlayback.kt` | Connects to VLC's `MediaBrowserService`, reads title, duration and position from its media session and reports when VLC changes video. |
+| `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file, preloaded when VLC changes video), line. Turns each failure into a `SubtitleCaptureFailure` carrying the string resource shown in the bubble and the log reason. |
+| `VlcPlayback.kt` | Connects to VLC's `MediaBrowserService`, reads title, duration and position from its media session and reports when VLC changes video. A pure function decides whether the session has a video open. |
 | `EpisodeLibrary.kt` | `MediaStore` query by duration, and opening a file for the reader. |
 | `EpisodeFileMatch.kt` | Pure choice among files of the same duration, by words shared with the title. |
 | `MatroskaSubtitleReader.kt` | Pure reader of the first text subtitle track of an `.mkv`. |
 | `SubtitleCueText.kt` | Pure cleanup of SubRip and ASS cue payloads into plain text. |
 | `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
 | `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line or the failure. Replaced by the next tap. |
-| `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, pulse animation, saved position. |
-| `OverlayButtonGeometry.kt` | Pure tap-versus-drag and snap-target math. |
+| `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, saved position. |
+| `CaptureButtonPulse.kt` | The shrink and blink of the button while a capture is being read. |
+| `OverlayCloseTarget.kt` | The circle shown at the bottom of the screen while the button is dragged. Dropping the button on it stops the capture. |
+| `OverlayButtonGeometry.kt` | Pure tap-versus-drag, snap-target and close-target catch math. |
+| `CaptureTileService.kt` | Quick Settings tile that starts and stops the capture without opening the app. Opens the app instead when a permission is missing. |
 
 Data flow:
 
-1. The user starts the capture. `MainActivity` sends them to the overlay permission screen if
-   it is missing, asks for the video permission if missing, then starts `OverlayService`.
+1. The user starts the capture, from the app or from the Quick Settings tile. `MainActivity` sends
+   them to the overlay permission screen if it is missing, asks for the video permission if
+   missing, then starts `OverlayService`. The tile starts the service itself, and opens the app
+   only when a permission is missing.
 2. `OverlayService` starts as a foreground service, shows the floating draggable button and
    connects to VLC. Each time VLC changes video it reads that file's cues ahead of the first tap.
 3. The user taps the floating button (a drag of 10px or more counts as repositioning, not a tap).
@@ -60,8 +66,8 @@ Data flow:
 6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
-the user in the same bubble. The debug build also logs each capture's position, file and line there, plus the connection to VLC
-and how long each file took to read.
+the user in the same bubble. The debug build also logs each capture's position, file and line
+there, plus the connection to VLC and how long each file took to read.
 
 ## Working Methodology
 
@@ -145,7 +151,8 @@ First-run permissions on the device:
 
 1. **Draw over other apps** (`SYSTEM_ALERT_WINDOW`): starting the capture opens the settings
    screen when it is missing. Grant it, go back and start again.
-2. **Videos** (`READ_MEDIA_VIDEO`): requested when the capture starts, if missing. Choose "Allow all".
+2. **Videos** (`READ_MEDIA_VIDEO`): requested when the capture starts, if missing. Choose
+   "Allow all".
 
 There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
 installed by hand.
@@ -155,7 +162,8 @@ installed by hand.
 JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
 above. Covered: the Matroska subtitle reader, the cue text cleanup, the lookup by position, the
 file matching, the overlay button geometry, the selection copy text, the split into words, the
-grouping by day and `SentenceStore` against a `TemporaryFolder`.
+grouping and naming of days, whether VLC's session has a video open, and `SentenceStore` against a
+`TemporaryFolder`.
 
 The reader is tested against `.mkv` fixtures of a few KB in `app/src/test/resources/`: black video,
 silent audio and invented lines, generated with ffmpeg. Real episodes never go into the repository.
@@ -218,7 +226,8 @@ amend, since `--amend` rewrites whatever `HEAD` currently is, not the commit you
 - Names: specific and unique. Avoid `data`, `handler`, `Manager`. Prefer names returning fewer than
   five grep hits. Spell identifiers out (`processingConfig`, not `cfg`) and write numbers as digits
   (`view2d`, not `twoD`).
-- Types: explicit. No `Any` catch-alls, no untyped functions: every `fun` declares its return type.
+- Types: explicit. No `Any` catch-alls, no untyped functions: every `fun` that returns a value
+  declares its return type. `Unit` stays implicit, as Kotlin writes it.
 - No code duplication (DRY). Shared logic (e.g. `Context.showToast`) belongs in one place.
 - Simplest thing that works (KISS), and only what the current task needs (YAGNI). No abstractions,
   flags or error handling for hypothetical futures.
@@ -310,6 +319,8 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
 - **Toasts are unreliable from `OverlayService`.** Android rate-limits and queues toasts from an
   app that is not in front: seen on-device, most capture toasts never appeared. Feedback during a
   capture goes through `CaptureFeedbackBubble` instead.
+- **Dropping the button on the close target does not save that position.** The next start puts
+  the button back where it last rested, not at the bottom of the screen.
 - **The overlay button position persists** in `SharedPreferences` (`overlay_button_position`)
   across app restarts. If the button seems lost, check it didn't snap off-screen on a device with a
   different resolution.
