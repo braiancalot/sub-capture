@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -41,12 +40,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestCapture() {
-        if (!Settings.canDrawOverlays(this)) {
+        if (!canShowOverlay) {
             showToast(getString(R.string.overlay_permission_needed))
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             return
         }
-        if (checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+        if (!canReadVideos) {
             videoPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VIDEO)
             return
         }
