@@ -6,6 +6,14 @@ import java.time.ZoneId
 
 data class CaptureDay(val date: LocalDate, val captureCount: Int)
 
+enum class RelativeDay { TODAY, YESTERDAY, EARLIER }
+
+fun relativeDayOf(date: LocalDate, today: LocalDate): RelativeDay = when (date) {
+    today -> RelativeDay.TODAY
+    today.minusDays(1) -> RelativeDay.YESTERDAY
+    else -> RelativeDay.EARLIER
+}
+
 private fun CapturedSentence.capturedOn(zone: ZoneId): LocalDate =
     Instant.ofEpochMilli(capturedAtMillis).atZone(zone).toLocalDate()
 

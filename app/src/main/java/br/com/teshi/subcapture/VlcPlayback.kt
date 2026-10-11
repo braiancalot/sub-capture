@@ -12,6 +12,13 @@ private val VLC_PLAYBACK_SERVICE = ComponentName("org.videolan.vlc", "org.videol
 
 data class VlcPlayback(val title: String, val durationMillis: Long, val positionMillis: Long)
 
+fun isVideoOpen(playbackStateCode: Int, durationMillis: Long): Boolean {
+    // After the player closes the session keeps the last title and duration, with position 0
+    if (playbackStateCode == PlaybackState.STATE_STOPPED || playbackStateCode == PlaybackState.STATE_NONE) return false
+    // VLC reports the new title before the duration, and a zero duration matches sub-second clips
+    return durationMillis > 0
+}
+
 class VlcConnection(private val context: Context, private val onVideoChanged: () -> Unit) {
     private var mediaBrowser: MediaBrowser? = null
     private var mediaController: MediaController? = null
@@ -58,14 +65,9 @@ class VlcConnection(private val context: Context, private val onVideoChanged: ()
     fun currentPlayback(): VlcPlayback? {
         val vlcSession = mediaController ?: return null
         val playbackState = vlcSession.playbackState ?: return null
-        // After the player closes the session keeps the last title and duration, with position 0
-        if (playbackState.state == PlaybackState.STATE_STOPPED || playbackState.state == PlaybackState.STATE_NONE) {
-            return null
-        }
         val metadata = vlcSession.metadata ?: return null
         val durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION)
-        // VLC reports the new title before the duration, and a zero duration matches sub-second clips
-        if (durationMillis <= 0) return null
+        if (!isVideoOpen(playbackState.state, durationMillis)) return null
         return VlcPlayback(
             title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty(),
             durationMillis = durationMillis,

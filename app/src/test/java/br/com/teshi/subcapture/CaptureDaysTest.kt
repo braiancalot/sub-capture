@@ -35,6 +35,15 @@ class CaptureDaysTest {
     }
 
     @Test
+    fun `a day is named relative to today only for today and the day before`() {
+        val today = LocalDate.of(2026, 10, 11)
+
+        assertEquals(RelativeDay.TODAY, relativeDayOf(LocalDate.of(2026, 10, 11), today))
+        assertEquals(RelativeDay.YESTERDAY, relativeDayOf(LocalDate.of(2026, 10, 10), today))
+        assertEquals(RelativeDay.EARLIER, relativeDayOf(LocalDate.of(2026, 10, 9), today))
+    }
+
+    @Test
     fun `the day follows the given time zone, not UTC`() {
         val lateEvening = listOf(capturedAt("2026-10-10T22:30:00"))
 

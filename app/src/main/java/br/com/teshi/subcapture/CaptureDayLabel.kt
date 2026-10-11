@@ -14,11 +14,10 @@ import java.time.format.FormatStyle
 
 @Composable
 fun CaptureDayLabel(captureDay: CaptureDay) {
-    val today = LocalDate.now()
-    val dayName = when (captureDay.date) {
-        today -> stringResource(R.string.day_today)
-        today.minusDays(1) -> stringResource(R.string.day_yesterday)
-        else -> captureDay.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    val dayName = when (relativeDayOf(captureDay.date, LocalDate.now())) {
+        RelativeDay.TODAY -> stringResource(R.string.day_today)
+        RelativeDay.YESTERDAY -> stringResource(R.string.day_yesterday)
+        RelativeDay.EARLIER -> captureDay.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
     }
     Text(
         text = stringResource(R.string.day_with_capture_count, dayName, captureDay.captureCount).uppercase(),
