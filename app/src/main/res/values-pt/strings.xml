@@ -2,6 +2,8 @@
   <string name="start_capture">Iniciar Captura</string>
   <string name="stop_capture">Parar Captura</string>
   <string name="empty_sentence_list">Nenhuma legenda capturada ainda.</string>
+  <string name="day_today">Hoje</string>
+  <string name="day_yesterday">Ontem</string>
   <string name="selection_cancel">Cancelar</string>
   <string name="selection_select_all">Tudo</string>
   <string name="selection_copy_count">Copiar %1$d</string>

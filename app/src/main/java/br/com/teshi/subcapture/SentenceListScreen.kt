@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.ZoneId
 
 @Composable
 fun SentenceListScreen(
@@ -106,8 +107,10 @@ private fun SentenceList(
 ) {
     if (sentences.isEmpty()) return EmptyListMessage()
     val isSelecting = selectedIndices.isNotEmpty()
+    val zone = remember { ZoneId.systemDefault() }
     LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         itemsIndexed(sentences) { index, sentence ->
+            dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
                 sentence.text, isSelecting, index in selectedIndices,
                 onTap = { if (isSelecting) onToggleSelected(index) else onCopyText(sentence.text) },

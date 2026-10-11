@@ -3,6 +3,9 @@
   <string name="start_capture">Start Capture</string>
   <string name="stop_capture">Stop Capture</string>
   <string name="empty_sentence_list">No subtitles captured yet.</string>
+  <string name="day_today">Today</string>
+  <string name="day_yesterday">Yesterday</string>
+  <string name="day_with_capture_count" translatable="false">%1$s · %2$d</string>
   <string name="selection_cancel">Cancel</string>
   <string name="selection_select_all">All</string>
   <string name="selection_copy_count">Copy %1$d</string>
