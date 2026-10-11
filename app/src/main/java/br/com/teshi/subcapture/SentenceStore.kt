@@ -15,6 +15,7 @@ class SentenceStore(private val sentencesFile: File) {
     val sentences: StateFlow<List<String>> = newestFirstSentences.asStateFlow()
 
     fun prepend(sentence: String) {
+        if (sentence in newestFirstSentences.value) return
         replaceWith(listOf(sentence) + newestFirstSentences.value)
     }
 

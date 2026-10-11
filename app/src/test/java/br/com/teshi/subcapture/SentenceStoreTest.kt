@@ -35,6 +35,14 @@ class SentenceStoreTest {
     }
 
     @Test
+    fun `prepend ignores a sentence that is already in the list`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        listOf("first", "second", "first").forEach(sentenceStore::prepend)
+
+        assertEquals(listOf("second", "first"), sentenceStore.sentences.value)
+    }
+
+    @Test
     fun `removeAt deletes only that position and persists it`() {
         val sentenceStore = SentenceStore(sentencesFile)
         listOf("first", "second", "third").forEach(sentenceStore::prepend)
