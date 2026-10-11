@@ -1,4 +1,3 @@
-# Connects to the phone, installs the debug build, opens it and follows its log.
 param([string]$Address)
 
 $ErrorActionPreference = "Stop"

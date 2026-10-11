@@ -1,4 +1,4 @@
-# Runs the whole unit test suite and lint, so a failure shows up before the push instead of in CI.
+# CI reports a failure only after the push, and it never runs lint
 $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path $PSScriptRoot
 

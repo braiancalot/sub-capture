@@ -1,4 +1,3 @@
-# Connects adb to the phone over Wi-Fi without reading the port off the phone's screen.
 param([string]$Address = "192.168.1.5")
 
 $ErrorActionPreference = "Stop"
