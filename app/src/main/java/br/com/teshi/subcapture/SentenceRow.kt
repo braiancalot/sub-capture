@@ -20,17 +20,17 @@ fun SentenceRow(
     sentence: CapturedSentence,
     isSelecting: Boolean,
     isSelected: Boolean,
-    onTap: () -> Unit,
-    onLongPress: () -> Unit,
+    onToggleSelected: () -> Unit,
     onToggleWord: (Int) -> Unit,
 ) {
-    val onTapWord = { wordIndex: Int? -> if (isSelecting) onTap() else wordIndex?.let(onToggleWord) ?: Unit }
+    val onTapRow = { if (isSelecting) onToggleSelected() }
+    val onTapWord = { wordIndex: Int? -> if (isSelecting) onToggleSelected() else wordIndex?.let(onToggleWord) ?: Unit }
     val rowModifier = Modifier.fillMaxWidth().clip(rowShape)
-        .combinedClickable(onClick = onTap, onLongClick = onLongPress)
+        .combinedClickable(onClick = onTapRow, onLongClick = onToggleSelected)
     val rowColor = if (isSelected) SelectedCardSurface else CardSurface
     val rowBorder = BorderStroke(1.dp, if (isSelected) AccentLine else Color.Transparent)
     Surface(rowModifier, rowShape, rowColor, border = rowBorder) {
         val textModifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)
-        MarkableSentenceText(sentence, textModifier, onTapWord, onLongPress)
+        MarkableSentenceText(sentence, textModifier, onTapWord, onLongPress = onToggleSelected)
     }
 }

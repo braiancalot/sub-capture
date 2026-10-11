@@ -28,20 +28,23 @@ fun MarkableSentenceText(
 ) {
     val words = remember(sentence.text) { sentenceWordsOf(sentence.text) }
     val textLayout = remember { mutableStateOf<TextLayoutResult?>(null) }
-    val currentOnTapWord by rememberUpdatedState(onTapWord)
-    val currentOnLongPress by rememberUpdatedState(onLongPress)
+    val onTapAt = { position: Offset -> onTapWord(tappedWordIndex(textLayout.value, words, position)) }
     Text(
         text = markedSentenceText(sentence, words),
-        modifier = modifier.pointerInput(words) {
-            detectTapGestures(
-                onLongPress = { currentOnLongPress() },
-                onTap = { position -> currentOnTapWord(tappedWordIndex(textLayout.value, words, position)) },
-            )
-        },
+        modifier = modifier.tapAndLongPress(onTapAt, onLongPress),
         fontSize = 17.sp,
         lineHeight = 26.sp,
         onTextLayout = { textLayout.value = it },
     )
+}
+
+@Composable
+private fun Modifier.tapAndLongPress(onTap: (Offset) -> Unit, onLongPress: () -> Unit): Modifier {
+    val currentOnTap by rememberUpdatedState(onTap)
+    val currentOnLongPress by rememberUpdatedState(onLongPress)
+    return pointerInput(Unit) {
+        detectTapGestures(onLongPress = { currentOnLongPress() }, onTap = { currentOnTap(it) })
+    }
 }
 
 private fun markedSentenceText(sentence: CapturedSentence, words: List<SentenceWord>): AnnotatedString =

@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.ZoneId
 
+private val listPadding = PaddingValues(start = ScreenGutter, end = ScreenGutter, bottom = 16.dp)
+
 @Composable
 fun SentenceListScreen(
     sentences: List<CapturedSentence>,
@@ -41,13 +43,13 @@ fun SentenceListScreen(
 ) {
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
-    val toggleSelected = { index: Int -> selection.value = toggledSelection(selection.value, index) }
     BackHandler(enabled = selection.value.isNotEmpty()) { selection.value = emptySet() }
-    Scaffold(bottomBar = { SentenceSelectionBar(sentences, selection, onDeleteSentences, onCopyText) }) { innerPadding ->
+    val selectionBar = @Composable { SentenceSelectionBar(sentences, selection, onDeleteSentences, onCopyText) }
+    Scaffold(bottomBar = selectionBar) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding)) {
             ScreenHeader()
             CaptureToggleButton(isOverlayRunning, onToggleCapture)
-            SentenceList(sentences, selection.value, toggleSelected, onToggleMarkedWord)
+            SentenceList(sentences, selection, onToggleMarkedWord)
         }
     }
 }
@@ -73,9 +75,11 @@ private fun SentenceSelectionBar(
 
 @Composable
 private fun ScreenHeader() {
+    val plainPart = stringResource(R.string.wordmark_plain_part)
+    val accentPart = stringResource(R.string.wordmark_accent_part)
     val wordmark = buildAnnotatedString {
-        append("Sub")
-        withStyle(SpanStyle(color = AccentLavender)) { append("Capture") }
+        append(plainPart)
+        withStyle(SpanStyle(color = AccentLavender)) { append(accentPart) }
     }
     Text(
         text = wordmark,
@@ -108,21 +112,18 @@ private fun CaptureToggleButton(isOverlayRunning: Boolean, onToggleCapture: () -
 @Composable
 private fun SentenceList(
     sentences: List<CapturedSentence>,
-    selectedIndices: Set<Int>,
-    onToggleSelected: (Int) -> Unit,
+    selection: MutableState<Set<Int>>,
     onToggleMarkedWord: (Int, Int) -> Unit,
 ) {
     if (sentences.isEmpty()) return EmptyListMessage()
-    val isSelecting = selectedIndices.isNotEmpty()
+    val isSelecting = selection.value.isNotEmpty()
     val zone = remember { ZoneId.systemDefault() }
-    val listPadding = PaddingValues(start = ScreenGutter, end = ScreenGutter, bottom = 16.dp)
     LazyColumn(contentPadding = listPadding, verticalArrangement = Arrangement.spacedBy(CardGap)) {
         itemsIndexed(sentences) { index, sentence ->
             dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
-                sentence, isSelecting, index in selectedIndices,
-                onTap = { if (isSelecting) onToggleSelected(index) },
-                onLongPress = { onToggleSelected(index) },
+                sentence, isSelecting, index in selection.value,
+                onToggleSelected = { selection.value = toggledSelection(selection.value, index) },
                 onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
             )
         }

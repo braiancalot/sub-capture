@@ -71,7 +71,7 @@ class OverlayService : Service() {
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         return Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("SubCapture")
+            .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.service_notification_text))
             .setSmallIcon(R.drawable.subcapture_mark)
             .build()
@@ -90,7 +90,7 @@ class OverlayService : Service() {
     private fun captureSubtitle() {
         if (isCapturing) return
         isCapturing = true
-        floatingCaptureButton?.startPulse()
+        floatingCaptureButton?.pulse?.start()
         captureScope.launch {
             try {
                 val capture = vlcSubtitleCapture.subtitleOnScreen()
@@ -120,6 +120,6 @@ class OverlayService : Service() {
 
     private fun finishCapture() {
         isCapturing = false
-        floatingCaptureButton?.stopPulse()
+        floatingCaptureButton?.pulse?.stop()
     }
 }

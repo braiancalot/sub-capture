@@ -30,8 +30,8 @@ class FloatingCaptureButton(
     private val captureButton: Button = overlayView.findViewById(R.id.capture_button)
     private val layoutParams = savedPositionLayoutParams()
     private val closeTarget = OverlayCloseTarget(context)
+    val pulse = CaptureButtonPulse(captureButton)
 
-    private var pulseAnimator: ValueAnimator? = null
     private var dragStartX = 0
     private var dragStartY = 0
     private var touchStartX = 0f
@@ -44,28 +44,9 @@ class FloatingCaptureButton(
     }
 
     fun remove() {
-        pulseAnimator?.cancel()
+        pulse.stop()
         closeTarget.detach()
         windowManager.removeView(overlayView)
-    }
-
-    fun startPulse() {
-        captureButton.animate().scaleX(0.75f).scaleY(0.75f).setDuration(150).start()
-        pulseAnimator = ValueAnimator.ofFloat(1f, 0.35f).apply {
-            duration = 550
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            startDelay = 150
-            addUpdateListener { captureButton.alpha = it.animatedValue as Float }
-            start()
-        }
-    }
-
-    fun stopPulse() {
-        pulseAnimator?.cancel()
-        pulseAnimator = null
-        captureButton.alpha = 1f
-        captureButton.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
     }
 
     private fun savedPositionLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(

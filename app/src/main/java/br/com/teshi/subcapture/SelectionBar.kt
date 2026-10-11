@@ -47,10 +47,15 @@ fun SelectionBar(
             Spacer(Modifier.weight(1f))
             SelectAllButton(onSelectAll)
             DeleteSelectedButton(onDelete)
-            Button(onCopy, shape = CircleShape, contentPadding = PaddingValues(horizontal = 18.dp)) {
-                Text(stringResource(R.string.selection_copy), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            }
+            CopySelectedButton(onCopy)
         }
+    }
+}
+
+@Composable
+private fun CopySelectedButton(onCopy: () -> Unit) {
+    Button(onCopy, shape = CircleShape, contentPadding = PaddingValues(horizontal = 18.dp)) {
+        Text(stringResource(R.string.selection_copy), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

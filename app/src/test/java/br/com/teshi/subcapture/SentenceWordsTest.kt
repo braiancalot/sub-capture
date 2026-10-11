@@ -20,7 +20,8 @@ class SentenceWordsTest {
 
     @Test
     fun `dashes and the separator between joined lines are not words`() {
-        assertEquals(listOf("AN", "ELECTRICIAN", "HE'LL", "CHARGE", "US"), wordTexts("AN ELECTRICIAN -- HE'LL / CHARGE US."))
+        val expected = listOf("AN", "ELECTRICIAN", "HE'LL", "CHARGE", "US")
+        assertEquals(expected, wordTexts("AN ELECTRICIAN -- HE'LL / CHARGE US."))
     }
 
     @Test
