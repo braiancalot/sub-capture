@@ -43,6 +43,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `MatroskaSubtitleReader.kt` | Pure reader of the first text subtitle track of an `.mkv`. |
 | `SubtitleCueText.kt` | Pure cleanup of SubRip and ASS cue payloads into plain text. |
 | `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
+| `SubtitleLetterCase.kt` | Pure rewrite of an all-caps subtitle track into sentence case, decided for the track as a whole. |
 | `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line or the failure. Replaced by the next tap. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, saved position. |
 | `CaptureButtonPulse.kt` | The shrink and blink of the button while a capture is being read. |
@@ -177,7 +178,8 @@ installed by hand.
 ## Testing
 
 JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
-above. Covered: the Matroska subtitle reader, the cue text cleanup, the lookup by position, the
+above. Covered: the Matroska subtitle reader, the cue text cleanup, the sentence casing of
+all-caps tracks, the lookup by position, the
 file matching, the overlay button geometry, the selection toggle, the rows a line gives the
 spreadsheet, the script's answer and the shape of its address, the split into words, the
 grouping and naming of days, whether VLC's session has a video open, and `SentenceStore` against a
@@ -319,6 +321,10 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
 - **The line comes from the file, not from the screen.** A badly timed subtitle track returns a
   neighbouring line. Seen with Modern Family S06E13, where the app's position readings were exact
   and the track itself drifted.
+- **An all-caps track is rewritten in sentence case, and proper names come out in lowercase.** The
+  app cannot tell a name from a word ("Where is phil?"). A track counts as all-caps when at most
+  10% of its letters are lowercase, and a line that has any lowercase letter is left as it is.
+  Lines captured before `v2.7.0` stay in capitals.
 - **VLC's subtitle delay is invisible to the app.** A delay the user set in VLC shifts what is on
   screen but not the lookup.
 - **The first text track is used, whatever VLC shows.** In a file with several languages the app
