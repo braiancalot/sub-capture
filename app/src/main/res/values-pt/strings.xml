@@ -5,10 +5,8 @@
   <string name="day_today">Hoje</string>
   <string name="day_yesterday">Ontem</string>
   <string name="delete_selected">Apagar selecionadas</string>
-  <string name="selection_one_selected">selecionada</string>
-  <string name="selection_several_selected">selecionadas</string>
-  <string name="selection_select_all">Tudo</string>
   <string name="selection_copy">Copiar</string>
+  <string name="selection_clear">Limpar seleção</string>
   <string name="overlay_permission_needed">Permita sobrepor a outros apps e toque de novo</string>
   <string name="capture_no_subtitle_at_position">Nenhuma legenda neste ponto</string>
   <string name="capture_no_video_in_vlc">Nenhum vídeo aberto no VLC</string>

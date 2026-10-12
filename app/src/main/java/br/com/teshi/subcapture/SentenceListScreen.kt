@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.ZoneId
 
-private val listPadding = PaddingValues(start = ScreenGutter, end = ScreenGutter, bottom = 16.dp)
+private fun listPadding(isSelecting: Boolean): PaddingValues {
+    val bottomPadding = if (isSelecting) 16.dp + SelectionBarClearance else 16.dp
+    return PaddingValues(start = ScreenGutter, end = ScreenGutter, bottom = bottomPadding)
+}
 
 @Composable
 fun SentenceListScreen(
@@ -44,12 +48,17 @@ fun SentenceListScreen(
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
     BackHandler(enabled = selection.value.isNotEmpty()) { selection.value = emptySet() }
-    val selectionBar = @Composable { SentenceSelectionBar(sentences, selection, onDeleteSentences, onCopyText) }
-    Scaffold(bottomBar = selectionBar) { innerPadding ->
-        Column(Modifier.fillMaxSize().padding(innerPadding)) {
-            ScreenHeader()
-            CaptureToggleButton(isOverlayRunning, onToggleCapture)
-            SentenceList(sentences, selection, onToggleMarkedWord)
+    Scaffold { innerPadding ->
+        // The bar floats over the list: as a Scaffold bottomBar it cut the list in a straight line
+        Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            Column(Modifier.fillMaxSize()) {
+                ScreenHeader()
+                CaptureToggleButton(isOverlayRunning, onToggleCapture)
+                SentenceList(sentences, selection, onToggleMarkedWord)
+            }
+            Box(Modifier.align(Alignment.BottomCenter)) {
+                SentenceSelectionBar(sentences, selection, onDeleteSentences, onCopyText)
+            }
         }
     }
 }
@@ -64,7 +73,6 @@ private fun SentenceSelectionBar(
     SelectionBar(
         selectedCount = selection.value.size,
         onClear = { selection.value = emptySet() },
-        onSelectAll = { selection.value = sentences.indices.toSet() },
         onDelete = { onDeleteSentences(selection.value) },
         onCopy = {
             onCopyText(chronologicalSelectionText(sentences.map { it.text }, selection.value))
@@ -118,7 +126,7 @@ private fun SentenceList(
     if (sentences.isEmpty()) return EmptyListMessage()
     val isSelecting = selection.value.isNotEmpty()
     val zone = remember { ZoneId.systemDefault() }
-    LazyColumn(contentPadding = listPadding, verticalArrangement = Arrangement.spacedBy(CardGap)) {
+    LazyColumn(contentPadding = listPadding(isSelecting), verticalArrangement = Arrangement.spacedBy(CardGap)) {
         itemsIndexed(sentences) { index, sentence ->
             dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
