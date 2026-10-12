@@ -23,7 +23,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | File | Role |
 | --- | --- |
 | `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, copies to the clipboard. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy or delete. Selection only recolors the card, so nothing moves. Selection state lives in the composable. Colors, gutter, gap and radius come from the design system tokens and are named once in `SubCaptureTheme.kt`. |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy or delete. Selection only recolors the card, so nothing moves. Selection state lives in the composable. Colors, gutter, gap and radius come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). |
 | `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in the accent color, never in bold, which would shift the line. |
 | `SentenceWords.kt` | Pure split of a line into words, and the word under a tapped character. |
 | `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day and naming of a day relative to today, and the label drawn above each day. |
@@ -316,6 +316,8 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   service stops. That tap says "Nenhum vídeo aberto no VLC" and reconnects, the next one works.
 - **VLC announces a new video with a zero duration first.** A playback without a duration MUST be
   treated as no video yet, or the lookup by duration matches any clip shorter than a second.
+- **Never bundle a variable font.** On the user's phone it drew every weight as the file's
+  lightest one. Bundle one static file per weight, see `docs/research-fonts.md`.
 - **Toasts are unreliable from `OverlayService`.** Android rate-limits and queues toasts from an
   app that is not in front: seen on-device, most capture toasts never appeared. Feedback during a
   capture goes through `CaptureFeedbackBubble` instead.

@@ -33,8 +33,8 @@ Applied in `v2.3.0`, named once in `SubCaptureTheme.kt`:
 
 Not applied:
 
-- The fonts (Literata for the lines, Hanken Grotesk for the chrome). They need the font files
-  bundled in the app.
+- The fonts (Literata for the lines, Hanken Grotesk for the chrome). The user did not choose them
+  and the app uses Figtree instead, see `research-fonts.md`.
 - The Settings screen and the "send to a destination" flow. They are features, not styling, and
   the app does not have them.
 
