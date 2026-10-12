@@ -21,7 +21,7 @@ fun CaptureDayLabel(captureDay: CaptureDay) {
     }
     Text(
         text = stringResource(R.string.day_with_capture_count, dayName, captureDay.captureCount).uppercase(),
-        modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = RowTintOverhang, top = 20.dp, bottom = 4.dp),
         color = MutedText,
         fontSize = 12.sp,
         fontWeight = FontWeight.Medium,

@@ -1,20 +1,27 @@
 package br.com.teshi.subcapture
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
 
-private val rowShape = RoundedCornerShape(CardRadius)
+// How far the selection tint reaches past the text on each side, so the text stays on the gutter
+val RowTintOverhang = 8.dp
 
-// Selection only recolors the card: nothing is added to the row, so the text never moves
+private val rowCornerRadius = 10.dp
+private val rowShape = RoundedCornerShape(rowCornerRadius)
+private val textPadding = Modifier.padding(horizontal = RowTintOverhang, vertical = 14.dp)
+
+// Selection only recolors the row: nothing is added to the row, so the text never moves
 @Composable
 fun SentenceRow(
     sentence: CapturedSentence,
@@ -26,11 +33,27 @@ fun SentenceRow(
     val onTapRow = { if (isSelecting) onToggleSelected() }
     val onTapWord = { wordIndex: Int? -> if (isSelecting) onToggleSelected() else wordIndex?.let(onToggleWord) ?: Unit }
     val rowModifier = Modifier.fillMaxWidth().clip(rowShape)
+        .selectionTint(isSelected)
         .combinedClickable(onClick = onTapRow, onLongClick = onToggleSelected)
-    val rowColor = if (isSelected) SelectedCardSurface else CardSurface
-    val rowBorder = BorderStroke(1.dp, if (isSelected) AccentLine else Color.Transparent)
-    Surface(rowModifier, rowShape, rowColor, border = rowBorder) {
-        val textModifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)
+        .rowDivider(isVisible = !isSelected)
+    Box(rowModifier) {
+        val textModifier = Modifier.fillMaxWidth().then(textPadding)
         MarkableSentenceText(sentence, textModifier, onTapWord, onLongPress = onToggleSelected)
     }
+}
+
+// Drawn short of the row's top and bottom, so two selected neighbours do not merge into one block
+private fun Modifier.selectionTint(isSelected: Boolean): Modifier = drawBehind {
+    if (!isSelected) return@drawBehind
+    val inset = 3.dp.toPx()
+    val tintSize = Size(size.width, size.height - 2 * inset)
+    drawRoundRect(SelectedRowSurface, Offset(0f, inset), tintSize, CornerRadius(rowCornerRadius.toPx()))
+}
+
+private fun Modifier.rowDivider(isVisible: Boolean): Modifier = drawBehind {
+    if (!isVisible) return@drawBehind
+    val thickness = 1.dp.toPx()
+    val lineY = size.height - thickness / 2
+    val inset = RowTintOverhang.toPx()
+    drawLine(RaisedSurface, Offset(inset, lineY), Offset(size.width - inset, lineY), thickness)
 }

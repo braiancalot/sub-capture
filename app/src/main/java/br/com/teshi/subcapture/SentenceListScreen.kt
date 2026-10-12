@@ -1,7 +1,6 @@
 package br.com.teshi.subcapture
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,9 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.ZoneId
 
+private val listGutter = ScreenGutter - RowTintOverhang
+
 private fun listPadding(isSelecting: Boolean): PaddingValues {
     val bottomPadding = if (isSelecting) 16.dp + SelectionBarClearance else 16.dp
-    return PaddingValues(start = ScreenGutter, end = ScreenGutter, bottom = bottomPadding)
+    return PaddingValues(start = listGutter, end = listGutter, bottom = bottomPadding)
 }
 
 @Composable
@@ -126,7 +127,7 @@ private fun SentenceList(
     if (sentences.isEmpty()) return EmptyListMessage()
     val isSelecting = selection.value.isNotEmpty()
     val zone = remember { ZoneId.systemDefault() }
-    LazyColumn(contentPadding = listPadding(isSelecting), verticalArrangement = Arrangement.spacedBy(CardGap)) {
+    LazyColumn(contentPadding = listPadding(isSelecting)) {
         itemsIndexed(sentences) { index, sentence ->
             dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(

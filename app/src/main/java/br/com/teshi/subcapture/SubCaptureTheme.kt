@@ -21,14 +21,11 @@ val FaintText = Color(0xFF514D47)
 val AccentLavender = Color(0xFFC4B5FD)
 val OnAccentInk = Color(0xFF1C1633)
 val AccentTint = AccentLavender.copy(alpha = 0.12f)
-val AccentLine = AccentLavender.copy(alpha = 0.40f)
-val SelectedCardSurface = AccentTint.compositeOver(AppBackground)
+val SelectedRowSurface = AccentTint.compositeOver(AppBackground)
 val DangerCoral = Color(0xFFE8806B)
 val DangerTint = DangerCoral.copy(alpha = 0.12f).compositeOver(AppBackground)
 
 val ScreenGutter = 20.dp
-val CardGap = 12.dp
-val CardRadius = 14.dp
 
 private val subCaptureColors = darkColorScheme(
     primary = AccentLavender,
