@@ -3,33 +3,38 @@
 ## Project
 
 **SubCapture** is an Android app that saves the subtitle line on screen while a video plays in VLC,
-so lines can be copied out as text instead of retyped. Personal use, single user. Tap a floating
-button during playback: the app asks VLC where the video is, reads that moment's line from the
-subtitle track inside the video file and adds it to a list, grouped by day. In the list, tap a word
-to mark it as the one being learned, or long-press to select lines and copy or delete them. Copies
-are newline-separated text. Android only. It works for local `.mkv` files with a text subtitle
-track (SubRip or ASS).
+so lines reach the user's vocabulary spreadsheet without being retyped. Personal use, single user.
+Tap a floating button during playback: the app asks VLC where the video is, reads that moment's
+line from the subtitle track inside the video file and adds it to a list, grouped by day. In the
+list, tap a word to mark it as the one being learned, or long-press to select lines and send them
+to a Google Sheets spreadsheet or delete them. Each marked word goes out as one row, with the line
+as its example. Android only. It works for local `.mkv` files with a text subtitle track (SubRip
+or ASS).
 
 Stack: Kotlin and Jetpack Compose, single Gradle module (`app`). VLC's media session, reached
 through its media browser service, for the playback position; `MediaStore` to find the file; a
 small Matroska reader for the subtitle track; a `WindowManager` overlay run from a foreground
-service. `minSdk` is 34, so there are no `Build.VERSION` branches. `v0.1.0` is the last React
-Native version and `v1.1.1` the last one that used screen capture and OCR, both kept as rollback
-points.
+service; an Apps Script web app bound to the spreadsheet, reached with a plain HTTPS POST.
+`minSdk` is 34, so there are no `Build.VERSION` branches. `v0.1.0` is the last React Native
+version and `v1.1.1` the last one that used screen capture and OCR, both kept as rollback points.
 
 Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 `app/src/test/java/br/com/teshi/subcapture/`.
 
 | File | Role |
 | --- | --- |
-| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, copies to the clipboard. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to copy or delete. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). |
-| `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in the accent color, never in bold, which would shift the line. |
+| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, starts the send to the spreadsheet and shows the script address dialog. |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to send or delete. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). |
+| `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in the accent color, never in bold, which would shift the line. A line already sent is drawn at half opacity. |
 | `SentenceWords.kt` | Pure split of a line into words, and the word under a tapped character. |
 | `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day and naming of a day relative to today, and the label drawn above each day. |
-| `SentenceSelection.kt` | Pure function that builds the copied text from a selection, oldest first. |
-| `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files. |
-| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time and the marked word positions. A text already in the list is not added again. |
+| `SentenceSelection.kt` | Pure toggle of an index in the selection. |
+| `SpreadsheetRows.kt` | Pure choice of the selected lines that go to the spreadsheet, oldest first, and the rows of a line: one per run of adjacent marked words. |
+| `SpreadsheetScriptPost.kt` | The POST to the spreadsheet's script. Pure checks of the script's answer and of the shape of its address. |
+| `SpreadsheetSend.kt` | One send: rows, POST, marking the lines as sent, the toast with the outcome and the log reason. |
+| `ScriptAddressDialog.kt` | The box that asks for the script address, built from the design system tokens. |
+| `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files and the saved script address. |
+| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time, the marked word positions and whether it was sent to the spreadsheet. A text already in the list is not added again. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
 | `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file, preloaded when VLC changes video), line. Turns each failure into a `SubtitleCaptureFailure` carrying the string resource shown in the bubble and the log reason. |
 | `VlcPlayback.kt` | Connects to VLC's `MediaBrowserService`, reads title, duration and position from its media session and reports when VLC changes video. A pure function decides whether the session has a video open. |
@@ -64,10 +69,16 @@ Data flow:
    together are joined with " / ". With none on screen it takes a line starting within 500ms, else
    the last one that ended within 5s, else nothing is added and the bubble says so.
 6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
+7. The user selects lines and sends them. Lines with a marked word and not sent yet become rows,
+   which go in one POST to the spreadsheet's script. When the script confirms the count, the lines
+   are marked as sent. The first send asks for the script address instead.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
 the user in the same bubble. The debug build also logs each capture's position, file and line
 there, plus the connection to VLC and how long each file took to read.
+
+A failed send is logged under the `SpreadsheetSend` tag and shown in a toast, which is reliable
+there because the app is in front.
 
 ## Working Methodology
 
@@ -124,6 +135,7 @@ bin/check                # all unit tests plus lint, to run before a push
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
 ./gradlew :app:lintDebug   # Android Lint, the same warnings Android Studio shows
 adb logcat -s OverlayService   # capture failures, with the concrete reason
+adb logcat -s SpreadsheetSend   # failed sends to the spreadsheet, with the concrete reason
 ```
 
 No format command is configured.
@@ -166,7 +178,8 @@ installed by hand.
 
 JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
 above. Covered: the Matroska subtitle reader, the cue text cleanup, the lookup by position, the
-file matching, the overlay button geometry, the selection copy text, the split into words, the
+file matching, the overlay button geometry, the selection toggle, the rows a line gives the
+spreadsheet, the script's answer and the shape of its address, the split into words, the
 grouping and naming of days, whether VLC's session has a video open, and `SentenceStore` against a
 `TemporaryFolder`.
 
@@ -326,6 +339,13 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
 - **Toasts are unreliable from `OverlayService`.** Android rate-limits and queues toasts from an
   app that is not in front: seen on-device, most capture toasts never appeared. Feedback during a
   capture goes through `CaptureFeedbackBubble` instead.
+- **The script address is a password.** Anyone holding it can write to the spreadsheet, and the
+  repository and the APK are public. It MUST NOT appear in the code, the logs, the docs or a
+  commit. Each build asks for it on its first send, see `docs/runbook-spreadsheet-script.md`.
+- **Apps Script reports a failed run with status 200 and an HTML page.** Only the `written` count
+  in the answer proves that the rows were written.
+- **A send whose answer is lost writes twice on the retry.** The lines stay unsent in the app
+  although the rows are in the sheet. Check the sheet before sending again after a failure.
 - **Dropping the button on the close target does not save that position.** The next start puts
   the button back where it last rested, not at the bottom of the screen.
 - **The overlay button position persists** in `SharedPreferences` (`overlay_button_position`)
