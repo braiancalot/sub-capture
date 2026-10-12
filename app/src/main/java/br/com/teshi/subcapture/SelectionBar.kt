@@ -64,7 +64,7 @@ fun SelectionBar(
 @Composable
 private fun CopySelectedButton(onCopy: () -> Unit) {
     Button(onCopy, shape = CircleShape, contentPadding = PaddingValues(horizontal = 18.dp)) {
-        Icon(painterResource(R.drawable.icon_copy), null, Modifier.padding(end = 8.dp).size(17.dp))
+        Icon(painterResource(R.drawable.icon_copy), null, Modifier.padding(end = 8.dp).size(18.dp))
         Text(stringResource(R.string.selection_copy), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
     }
 }
@@ -77,7 +77,7 @@ private fun SelectionCount(selectedCount: Int, onClear: () -> Unit) {
     ) {
         Box(Modifier.size(48.dp), Alignment.Center) {
             val clearLabel = stringResource(R.string.selection_clear)
-            Icon(painterResource(R.drawable.icon_close), clearLabel, Modifier.size(19.dp), SecondaryText)
+            Icon(painterResource(R.drawable.icon_close), clearLabel, Modifier.size(24.dp), SecondaryText)
         }
         Text("$selectedCount", color = PrimaryText, fontSize = 16.sp, fontWeight = FontWeight.Medium)
     }
@@ -90,6 +90,6 @@ private fun DeleteSelectedButton(onDelete: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         val deleteLabel = stringResource(R.string.delete_selected)
-        Icon(painterResource(R.drawable.icon_trash), deleteLabel, Modifier.size(19.dp), DangerCoral)
+        Icon(painterResource(R.drawable.icon_trash), deleteLabel, Modifier.size(24.dp), DangerCoral)
     }
 }

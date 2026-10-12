@@ -28,7 +28,7 @@ Applied in `v2.3.0`, named once in `SubCaptureTheme.kt`:
 - Colors: the three surfaces, the four text steps, the accent with its tint and line, the danger
   color.
 - Layout: 20dp screen gutter and pill buttons. The boxed cards (12dp apart, 14dp radius) were replaced by plain rows on 2026-10-12: the lighter box looked tappable and was not.
-- Icons: the Lucide bin and close strokes, as vector drawables.
+- Icons: none. The draft used Lucide strokes; on 2026-10-12 the user chose Material Symbols (Rounded, weight 400), copied from `symbols/android/` in `google/material-design-icons` with the `android:tint` attribute removed, since the overlay views have no theme to resolve it.
 - The floating selection bar, after the `SelectionBar` component.
 
 Not applied:
