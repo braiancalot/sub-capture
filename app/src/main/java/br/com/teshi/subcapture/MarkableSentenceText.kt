@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
@@ -15,6 +16,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.sp
+
+private const val SENT_LINE_ALPHA = 0.5f
 
 // Color only: a heavier weight widens the word and pushes the rest of the line
 private val markedWordStyle = SpanStyle(color = AccentLavender, background = AccentTint)
@@ -31,7 +34,8 @@ fun MarkableSentenceText(
     val onTapAt = { position: Offset -> onTapWord(tappedWordIndex(textLayout.value, words, position)) }
     Text(
         text = markedSentenceText(sentence, words),
-        modifier = modifier.tapAndLongPress(onTapAt, onLongPress),
+        modifier = modifier.alpha(if (sentence.isSentToSpreadsheet) SENT_LINE_ALPHA else 1f)
+            .tapAndLongPress(onTapAt, onLongPress),
         fontSize = 18.sp,
         lineHeight = 28.sp,
         onTextLayout = { textLayout.value = it },
