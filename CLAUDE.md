@@ -79,14 +79,19 @@ QA.
    screen, a refactor across files, a change of capture strategy) and wait for confirmation. Small,
    localized changes can be made directly. When the user says "review" or "analyze", answer with a
    diagnosis, trade-offs and questions, not a patch.
-2. **Never run the app or verify a capture yourself.** Overlay behavior, what VLC reports and
-   whether the captured line matches the screen can only be judged by the user on their own device
-   against a real video. Ask them to test and report back, then read the log
-   yourself with `adb logcat -d -s OverlayService` (or ask them to paste it when the phone is not
-   connected), rather than claiming a capture works. Builds are the
-   user's too: they install onto the user's device.
-   Individual test files you may run, and should, to check your own work; the full suite is the
-   user's.
+2. **Install and check the debug build yourself, and bring the user only what needs their eyes.**
+   After a change, run `./gradlew installDebug`, open the app with `adb shell am start` and read a
+   screenshot (`adb exec-out screencap -p`) to confirm the change is on screen as intended. Fix
+   what you can see is wrong before reporting. The phone refuses `adb shell input` (taps and
+   swipes) unless the user turns on "USB debugging (Security settings)" in the developer options,
+   so a state that needs a touch (a selection, a marked word) is reached by asking the user for
+   that one gesture. If input ever works, leave the phone as you found it and never delete a
+   capture. Still the user's to judge: whether a
+   captured line matches a real video in VLC, how a gesture feels in the hand, and every matter of
+   taste. For those, ask them to test and report back, then read the log yourself with
+   `adb logcat -d -s OverlayService`, rather than claiming a capture works. When the phone is not
+   connected, say so instead of skipping the check silently. Individual test files you may run,
+   and should, to check your own work; the full suite is the user's.
 3. **TDD where a suite exists.** Every feature ships with a test and every bug fix gets a
    regression test, red-green-refactor when possible. Pure logic (subtitle parsing and lookup,
    file matching, button geometry, selection text) gets pulled out of `OverlayService` or UI event
