@@ -13,6 +13,7 @@ data class CapturedSentence(
     val text: String,
     val capturedAtMillis: Long,
     val markedWordIndices: Set<Int> = emptySet(),
+    val isSentToSpreadsheet: Boolean = false,
 )
 
 private val sentenceListSerializer = ListSerializer(CapturedSentence.serializer())
@@ -34,6 +35,10 @@ class SentenceStore(private val sentencesFile: File) {
         val sentence = newestFirstSentences.value[index]
         val marked = sentence.copy(markedWordIndices = toggledSelection(sentence.markedWordIndices, wordIndex))
         replaceWith(newestFirstSentences.value.toMutableList().also { it[index] = marked })
+    }
+
+    fun markSent(texts: Set<String>) {
+        replaceWith(newestFirstSentences.value.map { if (it.text in texts) it.copy(isSentToSpreadsheet = true) else it })
     }
 
     private fun replaceWith(updatedSentences: List<CapturedSentence>) {

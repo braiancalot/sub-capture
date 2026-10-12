@@ -66,4 +66,15 @@ class SentenceStoreTest {
 
         assertEquals(listOf("third", "first"), savedTexts())
     }
+
+    @Test
+    fun `markSent flags the lines with those texts and persists it`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
+
+        sentenceStore.markSent(setOf("first", "third"))
+
+        val saved = SentenceStore(sentencesFile).sentences.value
+        assertEquals(listOf(true, false, true), saved.map { it.isSentToSpreadsheet })
+    }
 }
