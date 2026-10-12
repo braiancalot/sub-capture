@@ -46,6 +46,7 @@ class CaptureFeedbackBubble(private val context: Context) {
         setPadding(padding, padding, padding, padding)
         setTextColor(Color.WHITE)
         textSize = 15f
+        typeface = context.resources.getFont(R.font.figtree_regular)
         maxLines = 4
         ellipsize = TextUtils.TruncateAt.END
         gravity = Gravity.CENTER

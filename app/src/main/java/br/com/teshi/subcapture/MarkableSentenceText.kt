@@ -32,8 +32,8 @@ fun MarkableSentenceText(
     Text(
         text = markedSentenceText(sentence, words),
         modifier = modifier.tapAndLongPress(onTapAt, onLongPress),
-        fontSize = 17.sp,
-        lineHeight = 26.sp,
+        fontSize = 18.sp,
+        lineHeight = 28.sp,
         onTextLayout = { textLayout.value = it },
     )
 }

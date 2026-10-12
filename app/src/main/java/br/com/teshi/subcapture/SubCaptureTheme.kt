@@ -1,10 +1,14 @@
 package br.com.teshi.subcapture
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 val AppBackground = Color(0xFF0A0A0B)
@@ -37,7 +41,24 @@ private val subCaptureColors = darkColorScheme(
     outline = FaintText,
 )
 
+// One file per weight: a variable font drew every weight as its lightest one on the device
+private val FigtreeFamily = FontFamily(
+    Font(R.font.figtree_regular, FontWeight.Normal),
+    Font(R.font.figtree_medium, FontWeight.Medium),
+    Font(R.font.figtree_semibold, FontWeight.SemiBold),
+    Font(R.font.figtree_bold, FontWeight.Bold),
+)
+
 @Composable
 fun SubCaptureTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = subCaptureColors, content = content)
+    MaterialTheme(subCaptureColors, typography = figtreeTypography(), content = content)
+}
+
+// Only the two styles the screen reads: bodyLarge behind every Text, labelLarge inside a Button
+private fun figtreeTypography(): Typography {
+    val base = Typography()
+    return base.copy(
+        bodyLarge = base.bodyLarge.copy(fontFamily = FigtreeFamily),
+        labelLarge = base.labelLarge.copy(fontFamily = FigtreeFamily),
+    )
 }
