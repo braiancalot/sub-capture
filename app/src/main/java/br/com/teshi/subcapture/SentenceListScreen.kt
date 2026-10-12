@@ -41,10 +41,12 @@ private fun listPadding(isSelecting: Boolean): PaddingValues {
 fun SentenceListScreen(
     sentences: List<CapturedSentence>,
     isOverlayRunning: Boolean,
+    isSendingToSpreadsheet: Boolean,
     onToggleCapture: () -> Unit,
     onDeleteSentences: (Set<Int>) -> Unit,
     onToggleMarkedWord: (Int, Int) -> Unit,
-    onCopyText: (String) -> Unit,
+    onSendSelection: (Set<Int>) -> Unit,
+    onChangeScriptAddress: () -> Unit,
 ) {
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
@@ -58,7 +60,9 @@ fun SentenceListScreen(
                 SentenceList(sentences, selection, onToggleMarkedWord)
             }
             Box(Modifier.align(Alignment.BottomCenter)) {
-                SentenceSelectionBar(sentences, selection, onDeleteSentences, onCopyText)
+                SentenceSelectionBar(
+                    selection, isSendingToSpreadsheet, onDeleteSentences, onSendSelection, onChangeScriptAddress,
+                )
             }
         }
     }
@@ -66,19 +70,19 @@ fun SentenceListScreen(
 
 @Composable
 private fun SentenceSelectionBar(
-    sentences: List<CapturedSentence>,
     selection: MutableState<Set<Int>>,
+    isSendingToSpreadsheet: Boolean,
     onDeleteSentences: (Set<Int>) -> Unit,
-    onCopyText: (String) -> Unit,
+    onSendSelection: (Set<Int>) -> Unit,
+    onChangeScriptAddress: () -> Unit,
 ) {
     SelectionBar(
         selectedCount = selection.value.size,
+        isSending = isSendingToSpreadsheet,
         onClear = { selection.value = emptySet() },
         onDelete = { onDeleteSentences(selection.value) },
-        onCopy = {
-            onCopyText(chronologicalSelectionText(sentences.map { it.text }, selection.value))
-            selection.value = emptySet()
-        },
+        onSend = { onSendSelection(selection.value) },
+        onChangeScriptAddress = onChangeScriptAddress,
     )
 }
 

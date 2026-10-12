@@ -9,8 +9,16 @@
   <string name="day_yesterday">Yesterday</string>
   <string name="day_with_capture_count" translatable="false">%1$s · %2$d</string>
   <string name="delete_selected">Delete selected</string>
-  <string name="selection_copy">Copy</string>
   <string name="selection_clear">Clear selection</string>
+  <string name="selection_send">Send</string>
+  <string name="spreadsheet_sentences_sent">Sentences sent: %1$d</string>
+  <string name="spreadsheet_sentences_sent_and_skipped">Sent: %1$d. No marked word or already sent: %2$d</string>
+  <string name="spreadsheet_nothing_to_send">Nothing to send: sentences already sent or with no marked word</string>
+  <string name="spreadsheet_send_failed">No answer from the spreadsheet. Check the internet and the script address.</string>
+  <string name="script_address_title">Spreadsheet script address</string>
+  <string name="script_address_explanation">Paste the address created when the spreadsheet script was deployed. It ends in /exec.</string>
+  <string name="script_address_save">Save</string>
+  <string name="script_address_cancel">Cancel</string>
   <string name="overlay_permission_needed">Allow display over other apps, then tap again</string>
   <string name="capture_no_subtitle_at_position">No subtitle at this point</string>
   <string name="capture_no_video_in_vlc">No video open in VLC</string>

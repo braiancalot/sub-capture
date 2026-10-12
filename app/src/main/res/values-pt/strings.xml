@@ -5,8 +5,16 @@
   <string name="day_today">Hoje</string>
   <string name="day_yesterday">Ontem</string>
   <string name="delete_selected">Apagar selecionadas</string>
-  <string name="selection_copy">Copiar</string>
   <string name="selection_clear">Limpar seleção</string>
+  <string name="selection_send">Enviar</string>
+  <string name="spreadsheet_sentences_sent">Frases enviadas: %1$d</string>
+  <string name="spreadsheet_sentences_sent_and_skipped">Enviadas: %1$d. Sem palavra marcada ou já enviadas: %2$d</string>
+  <string name="spreadsheet_nothing_to_send">Nada para enviar: frases já enviadas ou sem palavra marcada</string>
+  <string name="spreadsheet_send_failed">Sem resposta da planilha. Confira a internet e o endereço do script.</string>
+  <string name="script_address_title">Endereço do script da planilha</string>
+  <string name="script_address_explanation">Cole o endereço gerado ao implantar o script da planilha. Ele termina em /exec.</string>
+  <string name="script_address_save">Salvar</string>
+  <string name="script_address_cancel">Cancelar</string>
   <string name="overlay_permission_needed">Permita sobrepor a outros apps e toque de novo</string>
   <string name="capture_no_subtitle_at_position">Nenhuma legenda neste ponto</string>
   <string name="capture_no_video_in_vlc">Nenhum vídeo aberto no VLC</string>
