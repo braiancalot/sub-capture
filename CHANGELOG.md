@@ -5,6 +5,14 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.7.0] - 2026-10-12
+
+### Changed
+
+- Subtitles written all in capital letters are now captured in normal sentence case, so they read
+  well in the list and in the spreadsheet. Names of people and places come out in lowercase, since
+  the app cannot tell them from other words. Lines captured before this version stay as they were.
+
 ## [2.6.0] - 2026-10-12
 
 ### Added
