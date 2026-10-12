@@ -5,6 +5,19 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.6.0] - 2026-10-12
+
+### Added
+
+- Selected lines can be sent to a Google Sheets spreadsheet. Each marked word becomes a row, with
+  the line as its example. Words marked side by side go together as one expression.
+- Lines already sent stay in the list, dimmed, and are not sent twice.
+- The first send asks for the address of the spreadsheet's script.
+
+### Removed
+
+- Copying the selected lines.
+
 ## [2.5.0] - 2026-10-12
 
 ### Changed
