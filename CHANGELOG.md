@@ -5,6 +5,22 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.5.0] - 2026-10-12
+
+### Changed
+
+- A new font, Figtree, across the app and in the bubble shown over the video. Captured lines are a
+  little larger, which makes each word easier to tap.
+- Captured lines are a plain list with a thin line between them, instead of one box per line. More
+  lines fit on the screen.
+- The selection bar is simpler: a mark to leave the selection, the number of lines selected,
+  delete and copy. It floats over the list, which fades out behind it.
+- New icons, from Android's own set.
+
+### Removed
+
+- Selecting every line at once.
+
 ## [2.4.0] - 2026-10-11
 
 ### Added
