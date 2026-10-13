@@ -5,6 +5,13 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.8.0] - 2026-10-13
+
+### Changed
+
+- A captured line no longer ends in a period or a comma. Question marks, exclamation marks and
+  ellipses stay. Lines captured before this version stay as they were.
+
 ## [2.7.0] - 2026-10-12
 
 ### Changed
