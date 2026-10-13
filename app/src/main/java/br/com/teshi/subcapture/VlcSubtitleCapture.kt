@@ -63,7 +63,7 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
     private fun cuesOf(videoFile: VideoFileEntry): List<SubtitleCue> {
         if (videoFile == cachedVideoFile) return cachedCues
         val (cues, readingTime) = try {
-            measureTimedValue { sentenceCasedWhenTrackIsAllCaps(context.readSubtitleCuesOf(videoFile)) }
+            measureTimedValue { capturableCuesOf(context.readSubtitleCuesOf(videoFile)) }
         } catch (error: IOException) {
             throw SubtitleCaptureFailure(
                 R.string.capture_no_text_subtitles, "${videoFile.displayName}: ${error.message}"
@@ -77,3 +77,6 @@ class VlcSubtitleCapture(private val context: Context, private val vlcConnection
         return cues
     }
 }
+
+private fun capturableCuesOf(trackCues: List<SubtitleCue>): List<SubtitleCue> =
+    sentenceCasedWhenTrackIsAllCaps(trackCues).map { it.copy(text = withoutClosingPeriodOrComma(it.text)) }

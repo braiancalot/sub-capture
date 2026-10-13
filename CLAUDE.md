@@ -44,6 +44,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `SubtitleCueText.kt` | Pure cleanup of SubRip and ASS cue payloads into plain text. |
 | `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
 | `SubtitleLetterCase.kt` | Pure rewrite of an all-caps subtitle track into sentence case, decided for the track as a whole. |
+| `SubtitleClosingPunctuation.kt` | Pure removal of the period or comma that closes a line. A question mark, an exclamation mark and an ellipsis stay. |
 | `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line or the failure. Replaced by the next tap. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, saved position. |
 | `CaptureButtonPulse.kt` | The shrink and blink of the button while a capture is being read. |
@@ -179,7 +180,7 @@ installed by hand.
 
 JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
 above. Covered: the Matroska subtitle reader, the cue text cleanup, the sentence casing of
-all-caps tracks, the lookup by position, the
+all-caps tracks, the closing punctuation dropped from a line, the lookup by position, the
 file matching, the overlay button geometry, the selection toggle, the rows a line gives the
 spreadsheet, the script's answer and the shape of its address, the split into words, the
 grouping and naming of days, whether VLC's session has a video open, and `SentenceStore` against a
