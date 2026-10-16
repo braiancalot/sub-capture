@@ -47,7 +47,7 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | `SubtitleClosingPunctuation.kt` | Pure removal of the period or comma that closes a line. A question mark, an exclamation mark and an ellipsis stay. |
 | `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line or the failure. Replaced by the next tap. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, saved position. |
-| `CaptureButtonPulse.kt` | The shrink and blink of the button while a capture is being read. |
+| `CaptureButtonPulse.kt` | The blink of the button while a capture that reads the file is being read. |
 | `OverlayCloseTarget.kt` | The circle shown at the bottom of the screen while the button is dragged. Dropping the button on it stops the capture. |
 | `OverlayButtonGeometry.kt` | Pure tap-versus-drag, snap-target and close-target catch math. |
 | `CaptureTileService.kt` | Quick Settings tile that starts and stops the capture without opening the app. Opens the app instead when a permission is missing. |
