@@ -2,7 +2,9 @@ package br.com.teshi.subcapture
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.content.ComponentCallbacks
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -36,17 +38,40 @@ class FloatingCaptureButton(
     private var dragStartY = 0
     private var touchStartX = 0f
     private var touchStartY = 0f
+    private var lastScreenWidth = context.resources.displayMetrics.widthPixels
+    private val screenResizeCallbacks = object : ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) = moveInsideResizedScreen()
+
+        @Deprecated("Deprecated in Java")
+        override fun onLowMemory() = Unit
+    }
 
     fun show() {
         closeTarget.attach()
         windowManager.addView(overlayView, layoutParams)
         captureButton.setOnTouchListener { _, event -> handleTouch(event) }
+        context.registerComponentCallbacks(screenResizeCallbacks)
     }
 
     fun remove() {
+        context.unregisterComponentCallbacks(screenResizeCallbacks)
         pulse.stop()
         closeTarget.detach()
         windowManager.removeView(overlayView)
+    }
+
+    private fun moveInsideResizedScreen() {
+        val screen = context.resources.displayMetrics
+        if (screen.widthPixels == lastScreenWidth) return
+        layoutParams.x = edgeXAfterResize(layoutParams.x, overlayView.width, lastScreenWidth, screen.widthPixels, edgeMargin)
+        layoutParams.y = layoutParams.y.coerceIn(0, screen.heightPixels - overlayView.height)
+        lastScreenWidth = screen.widthPixels
+        windowManager.updateViewLayout(overlayView, layoutParams)
+        savePosition(layoutParams.x)
+    }
+
+    private fun savePosition(x: Int) {
+        positionPrefs.edit().putInt(POSITION_X_KEY, x).putInt(POSITION_Y_KEY, layoutParams.y).apply()
     }
 
     private fun savedPositionLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(
@@ -109,7 +134,7 @@ class FloatingCaptureButton(
         }
         val screenWidth = context.resources.displayMetrics.widthPixels
         val targetX = snapTargetX(layoutParams.x, overlayView.width, screenWidth, edgeMargin)
-        positionPrefs.edit().putInt(POSITION_X_KEY, targetX).putInt(POSITION_Y_KEY, layoutParams.y).apply()
+        savePosition(targetX)
         animateToEdge(targetX)
     }
 

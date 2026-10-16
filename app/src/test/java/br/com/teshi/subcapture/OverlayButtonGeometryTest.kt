@@ -38,4 +38,14 @@ class OverlayButtonGeometryTest {
     fun `button centered on the right half snaps to the right margin`() {
         assertEquals(884, snapTargetX(buttonX = 450, buttonWidth = 100, screenWidth = 1000, edgeMargin = 16))
     }
+
+    @Test
+    fun `a button on the right edge of a wider screen moves to the right edge of the narrower one`() {
+        assertEquals(964, edgeXAfterResize(buttonX = 1784, buttonWidth = 100, oldScreenWidth = 1900, newScreenWidth = 1080, edgeMargin = 16))
+    }
+
+    @Test
+    fun `a button on the left edge stays on the left edge after a resize`() {
+        assertEquals(16, edgeXAfterResize(buttonX = 16, buttonWidth = 100, oldScreenWidth = 1080, newScreenWidth = 1900, edgeMargin = 16))
+    }
 }
