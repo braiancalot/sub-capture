@@ -5,6 +5,18 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.8.1] - 2026-10-15
+
+### Fixed
+
+- After turning the phone from landscape to portrait with the floating button on an edge, the
+  button can be dragged sideways again. It now moves to the same edge of the turned screen.
+
+### Changed
+
+- The floating button no longer shrinks and blinks on every tap. It blinks softly only when a
+  capture takes a moment, and it has no outline around it.
+
 ## [2.8.0] - 2026-10-13
 
 ### Changed
