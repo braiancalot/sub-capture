@@ -9,6 +9,7 @@ Index of everything in this folder, one line per file. See the Knowledge section
 - `finding-design-system-source.md`: the design system's README still describes an amber accent while its tokens are lavender. Read the tokens. Lists what the app applies from it and what it does not.
 - `research-fonts.md`: why the app uses Figtree at 18sp, the candidates rejected, and why the font is bundled as one static file per weight instead of a variable font.
 - `research-spreadsheet-send.md`: what the app sends to the vocabulary spreadsheet and why through an Apps Script web app, the options rejected, what was verified and the known limits.
+- `research-definition-automation.md`: why the phonetic, definition and missing example come from Gemini on the selected rows, the learning research behind keeping one human check, and the options for running the model.
 - `runbook-spreadsheet-script.md`: the script behind the send, how to publish and change it, how to give its address to the app and what to check when a send fails.
 - `research-screen-actions.md`: where starting the capture, sending and deleting sit on the main screen, the empty list, and the layouts tried and rejected on the device.
 - `research-subtitle-from-file.md`: why and how the app reads the line from the file's subtitle track instead of OCR: what VLC exposes, the Matroska reader, the test fixtures, the device results, and the media browser connection that replaced the notification listener in v2.1.0.

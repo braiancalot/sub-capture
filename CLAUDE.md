@@ -21,6 +21,11 @@ version and `v1.1.1` the last one that used screen capture and OCR, both kept as
 Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 `app/src/test/java/br/com/teshi/subcapture/`.
 
+The spreadsheet's Apps Script lives in `spreadsheet-script/`, one file per responsibility, pushed
+to the document with `clasp`. On the rows the user selects, it fills the phonetic, the definition
+and a missing example with Gemini, then formats them for Anki. See
+`docs/runbook-spreadsheet-script.md`.
+
 | File | Role |
 | --- | --- |
 | `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, starts the send to the spreadsheet and shows the script address dialog. |
@@ -138,6 +143,9 @@ bin/check                # all unit tests plus lint, to run before a push
 ./gradlew test           # all unit tests
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
 ./gradlew :app:lintDebug   # Android Lint, the same warnings Android Studio shows
+node --test "spreadsheet-script/test/*.test.js"   # tests of the spreadsheet script
+clasp push               # from spreadsheet-script/: replace the document's script with the local files
+node spreadsheet-script/eval/runPromptCases.js 2   # the Gemini prompt on hard cases, one call per run
 adb logcat -s OverlayService   # capture failures, with the concrete reason
 adb logcat -s SpreadsheetSend   # failed sends to the spreadsheet, with the concrete reason
 ```
@@ -180,7 +188,9 @@ installed by hand.
 
 ## Testing
 
-JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. Run commands are
+JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. The spreadsheet script's pure
+functions have their own tests in `spreadsheet-script/test/`, on Node's built-in runner, which
+load the script files into one shared scope the way Apps Script does. Run commands are
 above. Covered: the Matroska subtitle reader, the cue text cleanup, the sentence casing of
 all-caps tracks, the closing punctuation dropped from a line, the lookup by position, the
 file matching, the overlay button geometry, the selection toggle, the rows a line gives the
@@ -353,6 +363,9 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   commit. Each build asks for it on its first send, see `docs/runbook-spreadsheet-script.md`.
 - **Apps Script reports a failed run with status 200 and an HTML page.** Only the `written` count
   in the answer proves that the rows were written.
+- **A pushed script change does not reach the app's sends until the web app is redeployed.** Edit
+  the existing deployment with a new version, so the address stays. Grant any new permission from
+  the menu first, or `doPost` fails.
 - **A send whose answer is lost writes twice on the retry.** The lines stay unsent in the app
   although the rows are in the sheet. Check the sheet before sending again after a failure.
 - **Dropping the button on the close target does not save that position.** The next start puts
