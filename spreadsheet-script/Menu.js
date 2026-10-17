@@ -2,6 +2,7 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Atalhos")
     .addItem("Formatar Frases (Fase 4)", "formatFullPhase4")
+    .addItem("Preencher e formatar seleção", "fillSelectionFromMenu")
     .addItem("Formatar Frases", "formatPhares")
     .addItem("Formatar Palavras", "formatWords")
     .addToUi();

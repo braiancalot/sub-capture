@@ -1,0 +1,27 @@
+{
+  "style": [
+    { "word": "debris", "phonetic": "/dəˈbriː/", "definition": "the pieces that are left after something has been destroyed or damaged", "example": "Emergency workers cleared the debris from the collapsed building." },
+    { "word": "cushion", "phonetic": "/ˈkʊʃən/", "definition": "a soft bag filled with soft material, used for sitting, leaning, or resting on", "example": "She placed a decorative cushion on the living room sofa." },
+    { "word": "bassoon", "phonetic": "/bəˈsuːn/", "definition": "a large woodwind instrument with a low sound", "example": "I'll be sure to send you that recording of my bassoon solo." }
+  ],
+  "items": [
+    { "word": "hung", "example": "", "watch": "inflected form without a sentence: definition must match the generated example and name hang" },
+    { "word": "read", "example": "I read that book last summer and loved it.", "watch": "past tense in context: /rɛd/, not /riːd/" },
+    { "word": "lead", "example": "", "watch": "homograph without a sentence: several senses and pronunciations, should raise doubt" },
+    { "word": "tipped off", "example": "Someone must have tipped off the police.", "watch": "phrasal verb as one unit" },
+    { "word": "tipped", "example": "Someone tipped him off before the raid.", "watch": "separated phrasal verb: the marked word alone, sense of tip off" },
+    { "word": "bail", "example": "Sorry, I have to bail, my mom needs the car.", "watch": "slang sense: leave suddenly, not money for release" },
+    { "word": "cushion", "example": "The savings will cushion the blow if he loses his job.", "watch": "verb sense, different from the style example's noun" },
+    { "word": "the elephant in the room", "example": "Nobody wants to talk about the elephant in the room.", "watch": "idiom as one unit" },
+    { "word": "gonna", "example": "I'm gonna grab some coffee, you want one?", "watch": "informal contraction" },
+    { "word": "phil", "example": "Where is phil?", "watch": "a name lowercased by the all-caps rewrite: should raise doubt" },
+    { "word": "live", "example": "They're playing live at the stadium tonight.", "watch": "adjective/adverb /laɪv/, not the verb /lɪv/" },
+    { "word": "awkward", "example": "", "watch": "plain word without a sentence: should be calm, no doubt" },
+    { "word": "children", "example": "", "watch": "irregular plural without a sentence: example must contain children" },
+    { "word": "ran", "example": "", "watch": "irregular past without a sentence: past tense of run" },
+    { "word": "wound", "example": "She wound the clock before going to bed.", "watch": "past of wind /waʊnd/, not injury /wuːnd/" },
+    { "word": "legacy", "example": "", "definition": "money or property left to someone in a will", "watch": "has a definition: example must use that sense, definition kept" },
+    { "word": "come up with", "example": "We need to come up with a better plan / before Monday.", "watch": "two subtitle lines joined with a slash" },
+    { "word": "y'all", "example": "Y'all need to calm down.", "watch": "regional contraction with apostrophe" }
+  ]
+}
