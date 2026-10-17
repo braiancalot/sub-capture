@@ -5,6 +5,22 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.9.0] - 2026-10-17
+
+### Changed
+
+- While lines are selected, deleting them sits at the top of the screen, next to the count, far
+  from sending at the bottom. Deleting has no undo, and it used to sit right next to sending.
+- Starting and stopping the capture is a round button in the bottom right corner. Holding it shows
+  what it does. During a selection, sending takes its place.
+- The empty list shows what will appear there and how to start capturing.
+
+### Added
+
+- The spreadsheet fills in the phonetic, the definition and, for a word without a sentence, an
+  example for the rows you select, then formats them for Anki. A definition it is unsure of turns
+  yellow, with a note saying what to check.
+
 ## [2.8.1] - 2026-10-15
 
 ### Fixed
