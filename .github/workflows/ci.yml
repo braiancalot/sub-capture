@@ -16,3 +16,7 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew test assembleDebug
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node --test "spreadsheet-script/test/*.test.js"
