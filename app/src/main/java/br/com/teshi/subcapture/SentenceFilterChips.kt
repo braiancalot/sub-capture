@@ -32,7 +32,10 @@ private fun FilterChoice(label: String, isSelected: Boolean, onClick: () -> Unit
         onClick = onClick,
         label = { Text(label) },
         shape = CircleShape,
+        // Filled like every other surface of the app, which draws no outlines
+        border = null,
         colors = FilterChipDefaults.filterChipColors(
+            containerColor = RaisedSurface,
             selectedContainerColor = AccentTint,
             selectedLabelColor = AccentLavender,
             labelColor = SecondaryText,
