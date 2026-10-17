@@ -2,9 +2,11 @@
   <string name="app_name" translatable="false">SubCapture</string>
   <string name="wordmark_plain_part" translatable="false">Sub</string>
   <string name="wordmark_accent_part" translatable="false">Capture</string>
-  <string name="start_capture">Start Capture</string>
-  <string name="stop_capture">Stop Capture</string>
-  <string name="empty_sentence_list">No subtitles captured yet.</string>
+  <string name="start_capture">Start capture</string>
+  <string name="stop_capture">Stop capture</string>
+  <string name="empty_sentence_list">Your sentences show up here</string>
+  <string name="empty_list_hint_start">Start the capture, then tap the floating button during a video in VLC.</string>
+  <string name="empty_list_hint_running">Tap the floating button during a video in VLC.</string>
   <string name="day_today">Today</string>
   <string name="day_yesterday">Yesterday</string>
   <string name="day_with_capture_count" translatable="false">%1$s · %2$d</string>

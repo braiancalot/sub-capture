@@ -1,14 +1,11 @@
 package br.com.teshi.subcapture
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,31 +14,21 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // Shared by the wordmark and the selection bar, so the list does not jump when one replaces the other
 val ScreenTopBarHeight = 64.dp
-
-// The send button's height plus its bottom margin: what the list leaves free so its last line clears it
-val SendButtonClearance = 76.dp
-
-// The list fades into the background under the button: a shadow does not show on a near-black screen
-private val listFadeHeight = SendButtonClearance + 56.dp
-private val listFade = Brush.verticalGradient(0f to AppBackground.copy(alpha = 0f), 0.5f to AppBackground)
 
 @Composable
 fun SelectionTopBar(selectedCount: Int, onClear: () -> Unit, onDelete: () -> Unit) {
@@ -69,29 +56,16 @@ private fun SelectionIconButton(iconId: Int, labelId: Int, tint: Color, onClick:
     }
 }
 
+private val sendColors = ScreenFabColors(AccentLavender, OnAccentInk)
+
+// The long press is how the script address is changed
 @Composable
 fun SendSelectionButton(isSending: Boolean, onSend: () -> Unit, onChangeScriptAddress: () -> Unit) {
-    Box(contentAlignment = Alignment.BottomEnd) {
-        Box(Modifier.fillMaxWidth().height(listFadeHeight).background(listFade))
-        Surface(
-            modifier = Modifier.navigationBarsPadding().padding(end = ScreenGutter, bottom = 20.dp),
-            shape = CircleShape,
-            color = AccentLavender,
-            shadowElevation = 12.dp,
-        ) { SendButtonContent(isSending, onSend, onChangeScriptAddress) }
-    }
-}
-
-// Not a Button, which has no long press: that is how the script address is changed
-@Composable
-private fun SendButtonContent(isSending: Boolean, onSend: () -> Unit, onChangeScriptAddress: () -> Unit) {
-    val contentModifier = Modifier.height(56.dp)
-        .combinedClickable(!isSending, role = Role.Button, onLongClick = onChangeScriptAddress, onClick = onSend)
-        .padding(horizontal = 20.dp)
-    Row(contentModifier, verticalAlignment = Alignment.CenterVertically) {
-        SendProgressOrIcon(isSending, Modifier.padding(end = 10.dp).size(20.dp))
+    ScreenFab(sendColors, onSend, onLongClick = onChangeScriptAddress, isEnabled = !isSending) {
+        SendProgressOrIcon(isSending, Modifier.padding(start = 4.dp, end = 10.dp).size(20.dp))
         Text(
             text = stringResource(R.string.selection_send),
+            modifier = Modifier.padding(end = 4.dp),
             color = OnAccentInk,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,

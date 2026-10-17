@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,10 +30,7 @@ import java.time.ZoneId
 
 private val listGutter = ScreenGutter - RowTintOverhang
 
-private fun listPadding(isSelecting: Boolean): PaddingValues {
-    val bottomPadding = if (isSelecting) 16.dp + SendButtonClearance else 16.dp
-    return PaddingValues(start = listGutter, end = listGutter, bottom = bottomPadding)
-}
+private val listPadding = PaddingValues(start = listGutter, end = listGutter, bottom = 16.dp + ScreenFabClearance)
 
 @Composable
 fun SentenceListScreen(
@@ -53,21 +47,19 @@ fun SentenceListScreen(
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
     BackHandler(enabled = selection.value.isNotEmpty()) { selection.value = emptySet() }
     Scaffold { innerPadding ->
-        // The bar floats over the list: as a Scaffold bottomBar it cut the list in a straight line
+        // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
                 ScreenTopBar(selection, onDeleteSentences)
-                CaptureToggleButton(isOverlayRunning, onToggleCapture)
-                SentenceList(sentences, selection, onToggleMarkedWord)
+                SentenceList(sentences, selection, onToggleMarkedWord) { EmptyListMessage(isOverlayRunning) }
             }
-            if (selection.value.isNotEmpty()) {
-                Box(Modifier.align(Alignment.BottomCenter)) {
-                    SendSelectionButton(
-                        isSendingToSpreadsheet,
-                        onSend = { onSendSelection(selection.value) },
-                        onChangeScriptAddress = onChangeScriptAddress,
-                    )
-                }
+            Box(Modifier.align(Alignment.BottomEnd)) {
+                if (selection.value.isEmpty()) return@Box CaptureToggleFab(isOverlayRunning, onToggleCapture)
+                SendSelectionButton(
+                    isSendingToSpreadsheet,
+                    onSend = { onSendSelection(selection.value) },
+                    onChangeScriptAddress = onChangeScriptAddress,
+                )
             }
         }
     }
@@ -97,35 +89,16 @@ private fun ScreenHeader() {
 }
 
 @Composable
-private fun CaptureToggleButton(isOverlayRunning: Boolean, onToggleCapture: () -> Unit) {
-    Button(
-        onClick = onToggleCapture,
-        modifier = Modifier.fillMaxWidth().padding(start = ScreenGutter, end = ScreenGutter, bottom = 8.dp),
-        shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isOverlayRunning) DangerTint else AccentLavender,
-            contentColor = if (isOverlayRunning) DangerCoral else OnAccentInk,
-        ),
-        contentPadding = PaddingValues(vertical = 14.dp),
-    ) {
-        Text(
-            text = stringResource(if (isOverlayRunning) R.string.stop_capture else R.string.start_capture),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-}
-
-@Composable
 private fun SentenceList(
     sentences: List<CapturedSentence>,
     selection: MutableState<Set<Int>>,
     onToggleMarkedWord: (Int, Int) -> Unit,
+    emptyList: @Composable () -> Unit,
 ) {
-    if (sentences.isEmpty()) return EmptyListMessage()
+    if (sentences.isEmpty()) return emptyList()
     val isSelecting = selection.value.isNotEmpty()
     val zone = remember { ZoneId.systemDefault() }
-    LazyColumn(contentPadding = listPadding(isSelecting)) {
+    LazyColumn(contentPadding = listPadding) {
         itemsIndexed(sentences) { index, sentence ->
             dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
@@ -134,12 +107,5 @@ private fun SentenceList(
                 onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
             )
         }
-    }
-}
-
-@Composable
-private fun EmptyListMessage() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(stringResource(R.string.empty_sentence_list), color = MutedText, fontSize = 14.sp)
     }
 }

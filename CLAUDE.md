@@ -24,7 +24,9 @@ Kotlin files live in `app/src/main/java/br/com/teshi/subcapture/`, tests in
 | File | Role |
 | --- | --- |
 | `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, starts the send to the spreadsheet and shows the script address dialog. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: start/stop button, list, long-press multi-select to send or delete. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: list, long-press multi-select to send or delete. During a selection the top bar holds the count and delete, away from send at the bottom. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). |
+| `ScreenFab.kt`, `CaptureToggleFab.kt` | The round button at the bottom right: it starts and stops the capture, icon only with its label as a tooltip, and gives way to send during a selection. |
+| `EmptyListMessage.kt` | What the empty list shows: an icon, what will appear there and the next step. |
 | `MarkableSentenceText.kt` | A captured line whose words can be tapped to mark or unmark them. Marked words are drawn in the accent color, never in bold, which would shift the line. A line already sent is drawn at half opacity. |
 | `SentenceWords.kt` | Pure split of a line into words, and the word under a tapped character. |
 | `CaptureDays.kt`, `CaptureDayLabel.kt` | Pure grouping of the list by capture day and naming of a day relative to today, and the label drawn above each day. |

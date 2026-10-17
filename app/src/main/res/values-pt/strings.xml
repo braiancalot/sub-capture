@@ -1,7 +1,9 @@
 <resources>
-  <string name="start_capture">Iniciar Captura</string>
-  <string name="stop_capture">Parar Captura</string>
-  <string name="empty_sentence_list">Nenhuma legenda capturada ainda.</string>
+  <string name="start_capture">Iniciar captura</string>
+  <string name="stop_capture">Parar captura</string>
+  <string name="empty_sentence_list">Suas frases aparecem aqui</string>
+  <string name="empty_list_hint_start">Inicie a captura e toque no botão flutuante durante um vídeo no VLC.</string>
+  <string name="empty_list_hint_running">Toque no botão flutuante durante um vídeo no VLC.</string>
   <string name="day_today">Hoje</string>
   <string name="day_yesterday">Ontem</string>
   <string name="delete_selected">Apagar selecionadas</string>
