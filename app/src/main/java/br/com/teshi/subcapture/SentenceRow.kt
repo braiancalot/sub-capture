@@ -34,7 +34,13 @@ fun SentenceRow(
     val onTapWord = { wordIndex: Int? -> if (isSelecting) onToggleSelected() else wordIndex?.let(onToggleWord) ?: Unit }
     val rowModifier = Modifier.fillMaxWidth().clip(rowShape)
         .selectionTint(isSelected)
-        .combinedClickable(onClick = onTapRow, onLongClick = onToggleSelected)
+        // No ripple: the padding around the text took it, while the text itself shows none
+        .combinedClickable(
+            interactionSource = null,
+            indication = null,
+            onClick = onTapRow,
+            onLongClick = onToggleSelected,
+        )
         .rowDivider(isVisible = !isSelected)
     Box(rowModifier) {
         val textModifier = Modifier.fillMaxWidth().then(textPadding)
