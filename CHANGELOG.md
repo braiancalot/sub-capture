@@ -5,6 +5,18 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.10.0] - 2026-10-17
+
+### Added
+
+- Chips above the list show only the lines that still have no marked word. A line marked there
+  stays in sight with its word until the filter is opened again, and the count drops as you go.
+  The chips appear only while some line is left to mark.
+
+### Fixed
+
+- Tapping just above or below a line no longer lights it up as if it did something.
+
 ## [2.9.0] - 2026-10-17
 
 ### Changed
