@@ -26,4 +26,8 @@
   <string name="capture_no_text_subtitles">Video has no text subtitles</string>
   <string name="service_notification_text">Tap the floating button to capture subtitles</string>
   <string name="service_notification_channel">Capture overlay</string>
+  <plurals name="selection_count">
+    <item quantity="one">%d selected</item>
+    <item quantity="other">%d selected</item>
+  </plurals>
 </resources>

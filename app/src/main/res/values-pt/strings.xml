@@ -22,4 +22,9 @@
   <string name="capture_no_text_subtitles">Vídeo sem legenda em texto</string>
   <string name="service_notification_text">Toque no botão flutuante para capturar legendas</string>
   <string name="service_notification_channel">Sobreposição de captura</string>
+  <plurals name="selection_count">
+    <item quantity="one">%d selecionada</item>
+    <item quantity="many">%d selecionadas</item>
+    <item quantity="other">%d selecionadas</item>
+  </plurals>
 </resources>

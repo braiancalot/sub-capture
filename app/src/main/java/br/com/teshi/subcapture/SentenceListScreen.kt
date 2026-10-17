@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -33,7 +34,7 @@ import java.time.ZoneId
 private val listGutter = ScreenGutter - RowTintOverhang
 
 private fun listPadding(isSelecting: Boolean): PaddingValues {
-    val bottomPadding = if (isSelecting) 16.dp + SelectionBarClearance else 16.dp
+    val bottomPadding = if (isSelecting) 16.dp + SendButtonClearance else 16.dp
     return PaddingValues(start = listGutter, end = listGutter, bottom = bottomPadding)
 }
 
@@ -55,34 +56,30 @@ fun SentenceListScreen(
         // The bar floats over the list: as a Scaffold bottomBar it cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
-                ScreenHeader()
+                ScreenTopBar(selection, onDeleteSentences)
                 CaptureToggleButton(isOverlayRunning, onToggleCapture)
                 SentenceList(sentences, selection, onToggleMarkedWord)
             }
-            Box(Modifier.align(Alignment.BottomCenter)) {
-                SentenceSelectionBar(
-                    selection, isSendingToSpreadsheet, onDeleteSentences, onSendSelection, onChangeScriptAddress,
-                )
+            if (selection.value.isNotEmpty()) {
+                Box(Modifier.align(Alignment.BottomCenter)) {
+                    SendSelectionButton(
+                        isSendingToSpreadsheet,
+                        onSend = { onSendSelection(selection.value) },
+                        onChangeScriptAddress = onChangeScriptAddress,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SentenceSelectionBar(
-    selection: MutableState<Set<Int>>,
-    isSendingToSpreadsheet: Boolean,
-    onDeleteSentences: (Set<Int>) -> Unit,
-    onSendSelection: (Set<Int>) -> Unit,
-    onChangeScriptAddress: () -> Unit,
-) {
-    SelectionBar(
+private fun ScreenTopBar(selection: MutableState<Set<Int>>, onDeleteSentences: (Set<Int>) -> Unit) {
+    if (selection.value.isEmpty()) return ScreenHeader()
+    SelectionTopBar(
         selectedCount = selection.value.size,
-        isSending = isSendingToSpreadsheet,
         onClear = { selection.value = emptySet() },
         onDelete = { onDeleteSentences(selection.value) },
-        onSend = { onSendSelection(selection.value) },
-        onChangeScriptAddress = onChangeScriptAddress,
     )
 }
 
@@ -94,12 +91,9 @@ private fun ScreenHeader() {
         append(plainPart)
         withStyle(SpanStyle(color = AccentLavender)) { append(accentPart) }
     }
-    Text(
-        text = wordmark,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = ScreenGutter, vertical = 16.dp),
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-    )
+    Box(Modifier.fillMaxWidth().height(ScreenTopBarHeight), Alignment.CenterStart) {
+        Text(wordmark, Modifier.padding(horizontal = ScreenGutter), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    }
 }
 
 @Composable
