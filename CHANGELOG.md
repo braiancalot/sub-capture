@@ -5,6 +5,12 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.10.1] - 2026-10-17
+
+### Changed
+
+- The filter chips are filled instead of outlined, like the rest of the screen.
+
 ## [2.10.0] - 2026-10-17
 
 ### Added
