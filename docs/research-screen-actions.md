@@ -20,6 +20,14 @@ rejected on the device in October 2026.
 - **The empty list follows the Google Keep pattern:** a large dim icon, a title that says what
   will appear there ("Suas frases aparecem aqui") and one line with the next step. It is
   centered on the screen, not on the list area below the title.
+- **Lines still without a marked word are found through a filter, not a mark on each row.**
+  Chips above the list, "Todas" and "Não marcadas · N", the "Não lidas" of Gmail and WhatsApp.
+  They show only while some unsent line has no marked word, or while the filter is open.
+- **The filter is taken when it opens.** A line marked inside it stays, its word in sight, and
+  only the count drops. It leaves when the filter is opened again. Changing the filter clears the
+  selection, so a delete never reaches a line out of sight. The filter does not survive a restart.
+- **A sentence row shows no ripple.** The padding around the text took the tap, and lit up, while
+  the text did not.
 
 ## Rejected
 
@@ -36,6 +44,15 @@ rejected on the device in October 2026.
   the pattern of any app the user knows.
 - **The button's icon inline in the empty list's text** ("Toque em [icon] para capturar"):
   read as too much and too little at once.
+- **A mark on each line awaiting a word:** a lavender dot in the left margin (outside the 20dp
+  grid), a dot at the right end (all text 16dp narrower), a bar (reads as a quote), a grey dot
+  (too faint), an empty circle on the left (indents every line and looks like a checkbox that does
+  nothing). Color alone also failed in Ubuntu's usability test: 7 of 11 did not read it as
+  "needs attention": https://lists.launchpad.net/dx-packages/msg32737.html
+- **A count in the day label** ("3 sem palavra"): says how many, not which.
+- **Bold for lines awaiting a word,** Gmail's cue for unread: the line would reflow when marked.
+- **A filter that drops a line the moment it is marked:** the word just marked disappears, so a
+  wrong mark goes unseen.
 
 ## Sources
 
