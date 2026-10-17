@@ -1,11 +1,24 @@
 package br.com.teshi.subcapture
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SpreadsheetRowsTest {
     private fun sentence(text: String, vararg markedWordIndices: Int, isSent: Boolean = false): CapturedSentence =
         CapturedSentence(text, capturedAtMillis = 1000, markedWordIndices.toSet(), isSent)
+
+    @Test
+    fun `an unsent line without a marked word is awaiting a word`() {
+        assertTrue(isAwaitingWord(sentence("Bell!")))
+    }
+
+    @Test
+    fun `a marked or an already sent line is not awaiting a word`() {
+        assertFalse(isAwaitingWord(sentence("Moo Golova!", 1)))
+        assertFalse(isAwaitingWord(sentence("Cam. What?", isSent = true)))
+    }
 
     @Test
     fun `a marked word becomes one row with the line as its example`() {

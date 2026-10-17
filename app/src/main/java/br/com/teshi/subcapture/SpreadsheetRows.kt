@@ -9,6 +9,9 @@ fun sentencesToSend(newestFirstSentences: List<CapturedSentence>, selectedIndice
     selectedIndices.sortedDescending().map { newestFirstSentences[it] }
         .filter { !it.isSentToSpreadsheet && it.markedWordIndices.isNotEmpty() }
 
+fun isAwaitingWord(sentence: CapturedSentence): Boolean =
+    !sentence.isSentToSpreadsheet && sentence.markedWordIndices.isEmpty()
+
 fun spreadsheetRowsOf(sentence: CapturedSentence): List<SpreadsheetRow> {
     val words = sentenceWordsOf(sentence.text)
     val markedIndices = sentence.markedWordIndices.filter { it in words.indices }.sorted()

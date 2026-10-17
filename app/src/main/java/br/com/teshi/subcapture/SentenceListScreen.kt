@@ -46,12 +46,17 @@ fun SentenceListScreen(
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
     BackHandler(enabled = selection.value.isNotEmpty()) { selection.value = emptySet() }
+    val unmarkedFilter = remember { mutableStateOf<Set<Long>?>(null) }
+    val visibleIndices = visibleSentenceIndices(sentences, unmarkedFilter.value)
     Scaffold { innerPadding ->
         // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
                 ScreenTopBar(selection, onDeleteSentences)
-                SentenceList(sentences, selection, onToggleMarkedWord) { EmptyListMessage(isOverlayRunning) }
+                SentenceFilter(sentences, unmarkedFilter, selection)
+                SentenceList(sentences, visibleIndices, selection, onToggleMarkedWord) {
+                    EmptyListMessage(isOverlayRunning)
+                }
             }
             Box(Modifier.align(Alignment.BottomEnd)) {
                 if (selection.value.isEmpty()) return@Box CaptureToggleFab(isOverlayRunning, onToggleCapture)
@@ -62,6 +67,22 @@ fun SentenceListScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SentenceFilter(
+    sentences: List<CapturedSentence>,
+    unmarkedFilter: MutableState<Set<Long>?>,
+    selection: MutableState<Set<Int>>,
+) {
+    val unmarkedCount = sentences.count(::isAwaitingWord)
+    val isFiltering = unmarkedFilter.value != null
+    if (unmarkedCount == 0 && !isFiltering) return
+    SentenceFilterChips(isFiltering, unmarkedCount) { isOnlyUnmarked ->
+        unmarkedFilter.value = if (isOnlyUnmarked) unmarkedFilterOf(sentences) else null
+        // A selection MUST NOT outlive the filter, or a delete would reach lines out of sight
+        selection.value = emptySet()
     }
 }
 
@@ -91,21 +112,31 @@ private fun ScreenHeader() {
 @Composable
 private fun SentenceList(
     sentences: List<CapturedSentence>,
+    visibleIndices: List<Int>,
     selection: MutableState<Set<Int>>,
     onToggleMarkedWord: (Int, Int) -> Unit,
     emptyList: @Composable () -> Unit,
 ) {
     if (sentences.isEmpty()) return emptyList()
+    if (visibleIndices.isEmpty()) return NothingToMarkMessage()
     val isSelecting = selection.value.isNotEmpty()
     val zone = remember { ZoneId.systemDefault() }
+    val visibleSentences = visibleIndices.map(sentences::get)
     LazyColumn(contentPadding = listPadding) {
-        itemsIndexed(sentences) { index, sentence ->
-            dayOpenedAt(sentences, index, zone)?.let { CaptureDayLabel(it) }
+        itemsIndexed(visibleIndices) { position, index ->
+            dayOpenedAt(visibleSentences, position, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
-                sentence, isSelecting, index in selection.value,
+                sentences[index], isSelecting, index in selection.value,
                 onToggleSelected = { selection.value = toggledSelection(selection.value, index) },
                 onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
             )
         }
+    }
+}
+
+@Composable
+private fun NothingToMarkMessage() {
+    Box(Modifier.fillMaxSize().padding(top = 48.dp), contentAlignment = Alignment.TopCenter) {
+        Text(stringResource(R.string.filter_unmarked_empty), color = MutedText, fontSize = 15.sp)
     }
 }

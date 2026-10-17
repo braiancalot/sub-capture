@@ -32,4 +32,7 @@
     <item quantity="one">%d selected</item>
     <item quantity="other">%d selected</item>
   </plurals>
+  <string name="filter_all">All</string>
+  <string name="filter_unmarked">Unmarked · %1$d</string>
+  <string name="filter_unmarked_empty">No sentence left to mark</string>
 </resources>

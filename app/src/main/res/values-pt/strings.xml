@@ -29,4 +29,7 @@
     <item quantity="many">%d selecionadas</item>
     <item quantity="other">%d selecionadas</item>
   </plurals>
+  <string name="filter_all">Todas</string>
+  <string name="filter_unmarked">Não marcadas · %1$d</string>
+  <string name="filter_unmarked_empty">Nenhuma frase para marcar</string>
 </resources>
