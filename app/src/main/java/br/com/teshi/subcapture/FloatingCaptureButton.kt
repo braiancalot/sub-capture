@@ -6,10 +6,14 @@ import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
@@ -22,6 +26,7 @@ private const val POSITION_Y_KEY = "button_y"
 class FloatingCaptureButton(
     private val context: Context,
     private val onTap: () -> Unit,
+    private val onLongPress: () -> Unit,
     private val onClose: () -> Unit,
 ) {
     private val windowManager = context.getSystemService(WindowManager::class.java)
@@ -33,6 +38,8 @@ class FloatingCaptureButton(
     private val layoutParams = savedPositionLayoutParams()
     private val closeTarget = OverlayCloseTarget(context)
     val pulse = CaptureButtonPulse(captureButton)
+    private val longPressHandler = Handler(Looper.getMainLooper())
+    private var wasLongPressed = false
 
     private var dragStartX = 0
     private var dragStartY = 0
@@ -55,6 +62,7 @@ class FloatingCaptureButton(
 
     fun remove() {
         context.unregisterComponentCallbacks(screenResizeCallbacks)
+        longPressHandler.removeCallbacksAndMessages(null)
         pulse.stop()
         closeTarget.detach()
         windowManager.removeView(overlayView)
@@ -105,26 +113,51 @@ class FloatingCaptureButton(
         touchStartX = event.rawX
         touchStartY = event.rawY
         captureButton.background?.setHotspot(event.x, event.y)
+        wasLongPressed = false
+        // Android's own delay before a press shows, so a drag that starts at once never flashes it
+        longPressHandler.postDelayed(::showPressedLook, ViewConfiguration.getTapTimeout().toLong())
+        longPressHandler.postDelayed(::longPress, ViewConfiguration.getLongPressTimeout().toLong())
+    }
+
+    private fun showPressedLook() {
         captureButton.isPressed = true
         captureButton.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).start()
     }
 
+    private fun longPress() {
+        wasLongPressed = true
+        releasePressedLook()
+        captureButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        onLongPress()
+    }
+
     private fun dragTo(event: MotionEvent) {
+        if (wasLongPressed) return
         val screen = context.resources.displayMetrics
         layoutParams.x = (dragStartX + (event.rawX - touchStartX).toInt())
             .coerceIn(0, screen.widthPixels - overlayView.width)
         layoutParams.y = (dragStartY + (event.rawY - touchStartY).toInt())
             .coerceIn(0, screen.heightPixels - overlayView.height)
         windowManager.updateViewLayout(overlayView, layoutParams)
-        if (!isTapGesture(event.rawX - touchStartX, event.rawY - touchStartY)) closeTarget.show()
+        if (!isTapGesture(event.rawX - touchStartX, event.rawY - touchStartY)) beginDrag()
         closeTarget.showCatching(closeTarget.isCatching(overlayView))
     }
 
+    private fun beginDrag() {
+        longPressHandler.removeCallbacksAndMessages(null)
+        if (captureButton.isPressed) releasePressedLook()
+        closeTarget.show()
+    }
+
     private fun endTouch(event: MotionEvent) {
+        longPressHandler.removeCallbacksAndMessages(null)
+        if (wasLongPressed) return
+        val isTap = isTapGesture(event.rawX - touchStartX, event.rawY - touchStartY)
+        if (isTap && !captureButton.isPressed) showPressedLook()
         releasePressedLook()
         val wasDroppedOnCloseTarget = closeTarget.isCatching(overlayView)
         closeTarget.hide()
-        if (isTapGesture(event.rawX - touchStartX, event.rawY - touchStartY)) {
+        if (isTap) {
             onTap()
             return
         }
@@ -139,6 +172,7 @@ class FloatingCaptureButton(
     }
 
     private fun cancelTouch() {
+        longPressHandler.removeCallbacksAndMessages(null)
         releasePressedLook()
         closeTarget.hide()
     }

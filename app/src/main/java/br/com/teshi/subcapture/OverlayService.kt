@@ -46,10 +46,14 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         startForeground(NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-        floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle, ::stopSelf).also { it.show() }
+        floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle, ::openApp, ::stopSelf).also { it.show() }
         captureFeedbackBubble = CaptureFeedbackBubble(this)
         vlcConnection.connect()
         runningState.value = true
+    }
+
+    private fun openApp() {
+        startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_NOT_STICKY
