@@ -1,6 +1,7 @@
 <resources>
   <color name="iconBackground">#141414</color>
   <color name="appBackground">#0a0a0b</color>
-  <color name="closeTargetIdle">#1a181b</color>
-  <color name="closeTargetCatching">#e8806b</color>
+  <color name="raisedSurface">#1a181b</color>
+  <color name="primaryText">#f4f1ec</color>
+  <color name="dangerCoral">#e8806b</color>
 </resources>

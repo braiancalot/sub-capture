@@ -109,7 +109,7 @@ class OverlayService : Service() {
     private fun finishCaptureWithSubtitle(subtitle: String?) {
         finishCapture()
         if (subtitle == null) {
-            captureFeedbackBubble?.show(getString(R.string.capture_no_subtitle_at_position))
+            captureFeedbackBubble?.showFailure(getString(R.string.capture_no_subtitle_at_position))
             return
         }
         sentenceStore.prepend(subtitle, System.currentTimeMillis())
@@ -119,7 +119,7 @@ class OverlayService : Service() {
     private fun finishCaptureWithError(userMessage: String, reason: String) {
         finishCapture()
         Log.e(CAPTURE_LOG_TAG, "capture failed: $reason")
-        captureFeedbackBubble?.show(userMessage)
+        captureFeedbackBubble?.showFailure(userMessage)
     }
 
     private fun finishCapture() {

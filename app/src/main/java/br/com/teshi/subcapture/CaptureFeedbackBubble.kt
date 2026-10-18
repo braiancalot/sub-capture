@@ -1,7 +1,6 @@
 package br.com.teshi.subcapture
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
@@ -21,8 +20,13 @@ class CaptureFeedbackBubble(private val context: Context) {
     private val bubbleView = buildBubbleView()
     private var isShown = false
 
-    fun show(message: String) {
+    fun show(message: String) = display(message, R.color.primaryText)
+
+    fun showFailure(message: String) = display(message, R.color.dangerCoral)
+
+    private fun display(message: String, textColorId: Int) {
         bubbleView.text = message
+        bubbleView.setTextColor(context.getColor(textColorId))
         bubbleView.maxWidth = (context.resources.displayMetrics.widthPixels * BUBBLE_MAX_WIDTH_FRACTION).toInt()
         if (!isShown) windowManager.addView(bubbleView, bubbleLayoutParams())
         isShown = true
@@ -44,15 +48,14 @@ class CaptureFeedbackBubble(private val context: Context) {
     private fun buildBubbleView(): TextView = TextView(context).apply {
         val padding = (12 * density).toInt()
         setPadding(padding, padding, padding, padding)
-        setTextColor(Color.WHITE)
         textSize = 15f
         typeface = context.resources.getFont(R.font.figtree_regular)
         maxLines = 4
         ellipsize = TextUtils.TruncateAt.END
         gravity = Gravity.CENTER
         background = GradientDrawable().apply {
-            setColor(context.getColor(R.color.iconBackground))
-            cornerRadius = 12 * density
+            setColor(context.getColor(R.color.raisedSurface))
+            cornerRadius = 14 * density
         }
     }
 

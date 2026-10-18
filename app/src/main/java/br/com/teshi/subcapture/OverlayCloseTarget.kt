@@ -46,7 +46,7 @@ class OverlayCloseTarget(private val context: Context) {
     }
 
     fun showCatching(isCatching: Boolean) {
-        val fillColor = if (isCatching) R.color.closeTargetCatching else R.color.closeTargetIdle
+        val fillColor = if (isCatching) R.color.dangerCoral else R.color.raisedSurface
         targetBackground.setColor(context.getColor(fillColor))
     }
 
