@@ -5,6 +5,21 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.11.0] - 2026-10-18
+
+### Added
+
+- Holding the floating button opens the app, with a short vibration.
+
+### Changed
+
+- The floating button and the bubble shown after a capture use the app's colors. A failed capture
+  shows its message in coral.
+
+### Fixed
+
+- Dragging the floating button no longer flashes it as if it had been tapped.
+
 ## [2.10.1] - 2026-10-17
 
 ### Changed
