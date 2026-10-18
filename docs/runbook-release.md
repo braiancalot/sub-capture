@@ -12,7 +12,13 @@
    ```
 4. The Release workflow (Actions tab) takes a few minutes. It runs the unit tests, builds the
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
-5. On the phone, open the Release page, download the APK and install it over the previous version.
+5. Install it over the previous version. From the PC, with the phone connected over adb:
+   ```bash
+   gh release download v1.2.0 --pattern "*.apk" --dir .scratch/release
+   adb install -r .scratch/release/SubCapture-v1.2.0.apk
+   ```
+   An install over adb skips Play Protect's check. Or, on the phone, open the Release page,
+   download the APK and install it.
 
 Play Protect shows a warning and offers to install anyway. The latest release is always at
 https://github.com/braiancalot/sub-capture/releases/latest.

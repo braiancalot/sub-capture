@@ -29,7 +29,7 @@ and a missing example with Gemini, then formats them for Anki. See
 | File | Role |
 | --- | --- |
 | `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, starts the send to the spreadsheet and shows the script address dialog. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: list, long-press multi-select to send or delete. During a selection the top bar holds the count and delete, away from send at the bottom. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: list, long-press multi-select to send or delete. During a selection the top bar holds the count and delete, away from send at the bottom. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). The overlay's Views read the same values from `res/values/colors.xml`. |
 | `ScreenFab.kt`, `CaptureToggleFab.kt` | The round button at the bottom right: it starts and stops the capture, icon only with its label as a tooltip, and gives way to send during a selection. |
 | `SentenceFilter.kt`, `SentenceFilterChips.kt` | The "unmarked" filter: chips above the list, shown while a line awaits a marked word. The filter is taken when it opens, by capture time, so a line marked inside it stays in sight. Pure choice of the visible lines in `SentenceFilter.kt`. |
 | `EmptyListMessage.kt` | What the empty list shows: an icon, what will appear there and the next step. |
@@ -53,8 +53,8 @@ and a missing example with Gemini, then formats them for Anki. See
 | `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
 | `SubtitleLetterCase.kt` | Pure rewrite of an all-caps subtitle track into sentence case, decided for the track as a whole. |
 | `SubtitleClosingPunctuation.kt` | Pure removal of the period or comma that closes a line. A question mark, an exclamation mark and an ellipsis stay. |
-| `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line or the failure. Replaced by the next tap. |
-| `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Drag, snap to edge, saved position. |
+| `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line, or the failure in coral. Replaced by the next tap. |
+| `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Tap, long press to open the app, drag, snap to edge, saved position. |
 | `CaptureButtonPulse.kt` | The blink of the button while a capture that reads the file is being read. |
 | `OverlayCloseTarget.kt` | The circle shown at the bottom of the screen while the button is dragged. Dropping the button on it stops the capture. |
 | `OverlayButtonGeometry.kt` | Pure tap-versus-drag, snap-target and close-target catch math. |
@@ -68,7 +68,8 @@ Data flow:
    only when a permission is missing.
 2. `OverlayService` starts as a foreground service, shows the floating draggable button and
    connects to VLC. Each time VLC changes video it reads that file's cues ahead of the first tap.
-3. The user taps the floating button (a drag of 10px or more counts as repositioning, not a tap).
+3. The user taps the floating button (a drag of 10px or more counts as repositioning, not a tap,
+   and holding it still opens the app).
    The service reads VLC's title, duration and position from its media session. Playback is not
    paused.
 4. It finds the file in `MediaStore` by duration (within 1s), using the title to choose among
