@@ -12,12 +12,10 @@
    ```
 4. The Release workflow (Actions tab) takes a few minutes. It runs the unit tests, builds the
    release APK, signs it and creates the GitHub Release with `SubCapture-v1.2.0.apk` attached.
-5. Install it over the previous version. From the PC, with the phone connected over adb:
-   ```bash
-   gh release download v1.2.0 --pattern "*.apk" --dir .scratch/release
-   adb install -r .scratch/release/SubCapture-v1.2.0.apk
-   ```
-   An install over adb skips Play Protect's check. Or, on the phone, open the Release page,
+5. Install it over the previous version with `bin/install-release`, which connects to the phone,
+   downloads the latest release's APK with `gh` and installs it over adb (`-Tag v1.2.0` for another
+   version). An install over adb skips Play Protect's check. A version older than the installed
+   one is refused. Or, on the phone, open the Release page,
    download the APK and install it.
 
 Play Protect shows a warning and offers to install anyway. The latest release is always at

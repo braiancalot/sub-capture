@@ -141,6 +141,7 @@ QA.
 bin/dev                  # connect over Wi-Fi, install the debug build, open it and follow its log
 bin/connect              # only connect adb to the phone over Wi-Fi
 bin/check                # all unit tests plus lint, to run before a push
+bin/install-release      # install the latest GitHub Release over adb (-Tag v2.11.0 for another)
 ./gradlew installDebug   # build and install the debug APK on the connected device
 ./gradlew test           # all unit tests
 ./gradlew :app:testDebugUnitTest --tests "*.SentenceStoreTest"   # one test class
@@ -185,8 +186,8 @@ First-run permissions on the device:
 2. **Videos** (`READ_MEDIA_VIDEO`): requested when the capture starts, if missing. Choose
    "Allow all".
 
-There is no deployment beyond that: the release APK is downloaded from the GitHub Release page and
-installed by hand.
+There is no deployment beyond that: `bin/install-release` installs the release APK over adb, which
+skips Play Protect's check.
 
 ## Testing
 
