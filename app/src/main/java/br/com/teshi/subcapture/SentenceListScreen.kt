@@ -77,9 +77,7 @@ private fun SentenceFilter(
     selection: MutableState<Set<Int>>,
 ) {
     val unmarkedCount = sentences.count(::isAwaitingWord)
-    val isFiltering = unmarkedFilter.value != null
-    if (unmarkedCount == 0 && !isFiltering) return
-    SentenceFilterChips(isFiltering, unmarkedCount) { isOnlyUnmarked ->
+    SentenceFilterChips(unmarkedFilter.value != null, unmarkedCount) { isOnlyUnmarked ->
         unmarkedFilter.value = if (isOnlyUnmarked) unmarkedFilterOf(sentences) else null
         // A selection MUST NOT outlive the filter, or a delete would reach lines out of sight
         selection.value = emptySet()

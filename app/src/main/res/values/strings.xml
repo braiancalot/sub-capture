@@ -35,4 +35,5 @@
   <string name="filter_all">All</string>
   <string name="filter_unmarked">Unmarked · %1$d</string>
   <string name="filter_unmarked_empty">No sentence left to mark</string>
+  <string name="filter_all_marked">All marked</string>
 </resources>
