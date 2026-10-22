@@ -107,3 +107,8 @@ test("a blocked answer without text is refused with the raw answer", () => {
   const answer = JSON.stringify({ promptFeedback: { blockReason: "SAFETY" } });
   assert.throws(() => script.parsedDefinitions(answer, pending), /no text: .*SAFETY/);
 });
+
+test("an overloaded or rate-limited Gemini is retried, a refused request is not", () => {
+  [429, 500, 503, 504].forEach(status => assert.equal(script.isGeminiBusy(status), true, String(status)));
+  [200, 400, 403, 404].forEach(status => assert.equal(script.isGeminiBusy(status), false, String(status)));
+});

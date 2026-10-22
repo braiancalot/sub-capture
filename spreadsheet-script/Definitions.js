@@ -38,10 +38,13 @@ const DEFINITION_SCHEMA = {
   },
 };
 
+// Waits before each retry, kept short enough for Apps Script's 6-minute run limit
+const GEMINI_RETRY_DELAYS_MS = [5000, 15000, 30000];
+
 function requestDefinitions(pending, examples) {
   const apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set: add it in Project Settings > Script Properties");
-  const response = UrlFetchApp.fetch(geminiUrl(), {
+  const response = fetchGeminiWithRetries({
     method: "post",
     contentType: "application/json",
     headers: { "x-goog-api-key": apiKey },
@@ -51,6 +54,20 @@ function requestDefinitions(pending, examples) {
   const status = response.getResponseCode();
   if (status !== 200) throw new Error("Gemini answered HTTP " + status + ": " + response.getContentText().slice(0, 300));
   return parsedDefinitions(response.getContentText(), pending);
+}
+
+function fetchGeminiWithRetries(options) {
+  let response = UrlFetchApp.fetch(geminiUrl(), options);
+  for (const delay of GEMINI_RETRY_DELAYS_MS) {
+    if (!isGeminiBusy(response.getResponseCode())) return response;
+    Utilities.sleep(delay);
+    response = UrlFetchApp.fetch(geminiUrl(), options);
+  }
+  return response;
+}
+
+function isGeminiBusy(status) {
+  return [429, 500, 503, 504].includes(status);
 }
 
 function geminiUrl() {
