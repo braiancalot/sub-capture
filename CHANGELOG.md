@@ -5,6 +5,13 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.11.1] - 2026-10-22
+
+### Fixed
+
+- Marking a word on the last sentence that was waiting for one no longer makes the list jump up.
+  The filter chips show that everything is marked, then fold away smoothly.
+
 ## [2.11.0] - 2026-10-18
 
 ### Added
