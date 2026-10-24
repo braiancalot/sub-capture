@@ -21,8 +21,8 @@ video plays in VLC to capture the current line. Back in the app, tap a word to m
 long-press a line to enter multi-select mode, where the selection can be sent or deleted. Lines
 already sent stay in the list, dimmed.
 
-The spreadsheet side is a short script the user adds to their own document. The app asks for its
-address on the first send. See `docs/runbook-spreadsheet-script.md`.
+The spreadsheet side is a short script the user adds to their own document. Its address goes in the
+app's settings. See `docs/runbook-spreadsheet-script.md`.
 
 ## Build
 

@@ -8,7 +8,8 @@ import android.media.session.MediaController
 import android.media.session.PlaybackState
 import android.util.Log
 
-private val VLC_PLAYBACK_SERVICE = ComponentName("org.videolan.vlc", "org.videolan.vlc.PlaybackService")
+const val VLC_PACKAGE = "org.videolan.vlc"
+private val VLC_PLAYBACK_SERVICE = ComponentName(VLC_PACKAGE, "org.videolan.vlc.PlaybackService")
 
 data class VlcPlayback(val title: String, val durationMillis: Long, val positionMillis: Long)
 

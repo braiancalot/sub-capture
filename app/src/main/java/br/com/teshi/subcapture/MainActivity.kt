@@ -22,17 +22,42 @@ class MainActivity : ComponentActivity() {
     private val videoPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { OverlayService.start(this) }
 
-    private val isAskingScriptAddress = mutableStateOf(false)
     private val isSendingToSpreadsheet = mutableStateOf(false)
+    private val isShowingSettings = mutableStateOf(false)
+    private val isVlcShortcutOnHomeScreen = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
-        setContent { SubCaptureTheme { CaptureListAndAddressDialog() } }
+        setContent { SubCaptureTheme { CurrentScreen() } }
+        publishWatchInVlcShortcut()
+    }
+
+    // The shortcut is pinned from the launcher's own dialog, so the state is read again on return
+    override fun onResume() {
+        super.onResume()
+        isVlcShortcutOnHomeScreen.value = isVlcShortcutPinned
     }
 
     @Composable
-    private fun CaptureListAndAddressDialog() {
+    private fun CurrentScreen() {
+        if (isShowingSettings.value) SettingsScreenOfApp() else SentenceListScreenOfApp()
+    }
+
+    @Composable
+    private fun SettingsScreenOfApp() {
+        SettingsScreen(
+            savedScriptAddress = spreadsheetScriptAddress.orEmpty(),
+            onSaveScriptAddress = { spreadsheetScriptAddress = it },
+            isVlcShortcutPinned = isVlcShortcutOnHomeScreen.value,
+            onAddVlcShortcut = ::requestVlcShortcutPin,
+            onOpenShortcutPermission = if (hasXiaomiPermissionEditor) ::openXiaomiPermissionEditor else null,
+            onBack = { isShowingSettings.value = false },
+        )
+    }
+
+    @Composable
+    private fun SentenceListScreenOfApp() {
         val sentences by sentenceStore.sentences.collectAsState()
         val isOverlayRunning by OverlayService.isRunning.collectAsState()
         SentenceListScreen(
@@ -43,12 +68,8 @@ class MainActivity : ComponentActivity() {
             onDeleteSentences = sentenceStore::removeAll,
             onToggleMarkedWord = sentenceStore::toggleMarkedWord,
             onSendSelection = ::sendToSpreadsheet,
-            onChangeScriptAddress = { isAskingScriptAddress.value = true },
+            onOpenSettings = { isShowingSettings.value = true },
         )
-        if (!isAskingScriptAddress.value) return
-        ScriptAddressDialog(spreadsheetScriptAddress.orEmpty(), ::saveScriptAddress) {
-            isAskingScriptAddress.value = false
-        }
     }
 
     private fun requestCapture() {
@@ -64,15 +85,11 @@ class MainActivity : ComponentActivity() {
         OverlayService.start(this)
     }
 
-    private fun saveScriptAddress(scriptAddress: String) {
-        spreadsheetScriptAddress = scriptAddress
-        isAskingScriptAddress.value = false
-    }
-
     private fun sendToSpreadsheet(selectedIndices: Set<Int>) {
         val scriptAddress = spreadsheetScriptAddress
         if (scriptAddress == null) {
-            isAskingScriptAddress.value = true
+            showToast(getString(R.string.send_needs_script_address))
+            isShowingSettings.value = true
             return
         }
         // The script takes seconds to answer: a second tap meanwhile would write the rows twice

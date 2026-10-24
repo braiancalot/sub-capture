@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +42,7 @@ fun SentenceListScreen(
     onDeleteSentences: (Set<Int>) -> Unit,
     onToggleMarkedWord: (Int, Int) -> Unit,
     onSendSelection: (Set<Int>) -> Unit,
-    onChangeScriptAddress: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
@@ -52,7 +53,7 @@ fun SentenceListScreen(
         // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
-                ScreenTopBar(selection, onDeleteSentences)
+                ScreenTopBar(selection, onDeleteSentences, onOpenSettings)
                 SentenceFilter(sentences, unmarkedFilter, selection)
                 SentenceList(sentences, visibleIndices, selection, onToggleMarkedWord) {
                     EmptyListMessage(isOverlayRunning)
@@ -60,11 +61,7 @@ fun SentenceListScreen(
             }
             Box(Modifier.align(Alignment.BottomEnd)) {
                 if (selection.value.isEmpty()) return@Box CaptureToggleFab(isOverlayRunning, onToggleCapture)
-                SendSelectionButton(
-                    isSendingToSpreadsheet,
-                    onSend = { onSendSelection(selection.value) },
-                    onChangeScriptAddress = onChangeScriptAddress,
-                )
+                SendSelectionButton(isSendingToSpreadsheet, onSend = { onSendSelection(selection.value) })
             }
         }
     }
@@ -85,8 +82,12 @@ private fun SentenceFilter(
 }
 
 @Composable
-private fun ScreenTopBar(selection: MutableState<Set<Int>>, onDeleteSentences: (Set<Int>) -> Unit) {
-    if (selection.value.isEmpty()) return ScreenHeader()
+private fun ScreenTopBar(
+    selection: MutableState<Set<Int>>,
+    onDeleteSentences: (Set<Int>) -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    if (selection.value.isEmpty()) return ScreenHeader(onOpenSettings)
     SelectionTopBar(
         selectedCount = selection.value.size,
         onClear = { selection.value = emptySet() },
@@ -95,15 +96,17 @@ private fun ScreenTopBar(selection: MutableState<Set<Int>>, onDeleteSentences: (
 }
 
 @Composable
-private fun ScreenHeader() {
+private fun ScreenHeader(onOpenSettings: () -> Unit) {
     val plainPart = stringResource(R.string.wordmark_plain_part)
     val accentPart = stringResource(R.string.wordmark_accent_part)
     val wordmark = buildAnnotatedString {
         append(plainPart)
         withStyle(SpanStyle(color = AccentLavender)) { append(accentPart) }
     }
-    Box(Modifier.fillMaxWidth().height(ScreenTopBarHeight), Alignment.CenterStart) {
-        Text(wordmark, Modifier.padding(horizontal = ScreenGutter), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    val headerModifier = Modifier.fillMaxWidth().height(ScreenTopBarHeight).padding(start = ScreenGutter, end = 8.dp)
+    Row(headerModifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(wordmark, Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        TopBarIconButton(R.drawable.icon_settings, R.string.settings_title, SecondaryText, onOpenSettings)
     }
 }
 

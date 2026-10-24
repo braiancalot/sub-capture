@@ -76,9 +76,10 @@ open to anyone holding the link. It is not needed and should stay off.
 
 ## Give the address to the app
 
-The first send opens a box asking for it. The app refuses anything that is not a script web app
-address. A long press on the send button opens the box again to change it. The debug and the
-release builds are separate apps, so each one asks once.
+Paste it in the settings, opened from the gear in the top bar. It is saved as soon as it has the
+shape of a script web app address, and anything else is refused with a coral border. A send with
+no address opens the settings. The debug and the release builds are separate apps, so each one
+needs it once.
 
 ## Change the script
 

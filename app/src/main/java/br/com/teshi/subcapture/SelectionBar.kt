@@ -34,7 +34,7 @@ val ScreenTopBarHeight = 64.dp
 fun SelectionTopBar(selectedCount: Int, onClear: () -> Unit, onDelete: () -> Unit) {
     val barModifier = Modifier.fillMaxWidth().height(ScreenTopBarHeight).padding(horizontal = 8.dp)
     Row(barModifier, verticalAlignment = Alignment.CenterVertically) {
-        SelectionIconButton(R.drawable.icon_close, R.string.selection_clear, SecondaryText, onClear)
+        TopBarIconButton(R.drawable.icon_close, R.string.selection_clear, SecondaryText, onClear)
         Spacer(Modifier.width(4.dp))
         Text(
             text = pluralStringResource(R.plurals.selection_count, selectedCount, selectedCount),
@@ -45,12 +45,12 @@ fun SelectionTopBar(selectedCount: Int, onClear: () -> Unit, onDelete: () -> Uni
             style = LocalTextStyle.current.copy(fontFeatureSettings = "tnum"),
         )
         Spacer(Modifier.weight(1f))
-        SelectionIconButton(R.drawable.icon_trash, R.string.delete_selected, DangerCoral, onDelete)
+        TopBarIconButton(R.drawable.icon_trash, R.string.delete_selected, DangerCoral, onDelete)
     }
 }
 
 @Composable
-private fun SelectionIconButton(iconId: Int, labelId: Int, tint: Color, onClick: () -> Unit) {
+fun TopBarIconButton(iconId: Int, labelId: Int, tint: Color, onClick: () -> Unit) {
     Box(Modifier.size(48.dp).clip(CircleShape).clickable(onClick = onClick), Alignment.Center) {
         Icon(painterResource(iconId), stringResource(labelId), Modifier.size(24.dp), tint)
     }
@@ -58,10 +58,9 @@ private fun SelectionIconButton(iconId: Int, labelId: Int, tint: Color, onClick:
 
 private val sendColors = ScreenFabColors(AccentLavender, OnAccentInk)
 
-// The long press is how the script address is changed
 @Composable
-fun SendSelectionButton(isSending: Boolean, onSend: () -> Unit, onChangeScriptAddress: () -> Unit) {
-    ScreenFab(sendColors, onSend, onLongClick = onChangeScriptAddress, isEnabled = !isSending) {
+fun SendSelectionButton(isSending: Boolean, onSend: () -> Unit) {
+    ScreenFab(sendColors, onSend, isEnabled = !isSending) {
         SendProgressOrIcon(isSending, Modifier.padding(start = 4.dp, end = 10.dp).size(20.dp))
         Text(
             text = stringResource(R.string.selection_send),

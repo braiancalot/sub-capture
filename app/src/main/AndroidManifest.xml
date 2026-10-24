@@ -23,6 +23,14 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
+    <!-- Its own task, so the shortcut never brings the list to the front over VLC -->
+    <activity
+        android:name=".WatchInVlcActivity"
+        android:exported="false"
+        android:excludeFromRecents="true"
+        android:noHistory="true"
+        android:taskAffinity=""
+        android:theme="@android:style/Theme.NoDisplay"/>
     <service
         android:name=".OverlayService"
         android:exported="false"
@@ -48,5 +56,8 @@
   </application>
   <queries>
     <package android:name="org.videolan.vlc"/>
+    <intent>
+      <action android:name="miui.intent.action.APP_PERM_EDITOR"/>
+    </intent>
   </queries>
 </manifest>

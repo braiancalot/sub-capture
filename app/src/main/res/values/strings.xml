@@ -17,10 +17,6 @@
   <string name="spreadsheet_sentences_sent_and_skipped">Sent: %1$d. No marked word or already sent: %2$d</string>
   <string name="spreadsheet_nothing_to_send">Nothing to send: sentences already sent or with no marked word</string>
   <string name="spreadsheet_send_failed">No answer from the spreadsheet. Check the internet and the script address.</string>
-  <string name="script_address_title">Spreadsheet script address</string>
-  <string name="script_address_explanation">Paste the address created when the spreadsheet script was deployed. It ends in /exec.</string>
-  <string name="script_address_save">Save</string>
-  <string name="script_address_cancel">Cancel</string>
   <string name="overlay_permission_needed">Allow display over other apps, then tap again</string>
   <string name="capture_no_subtitle_at_position">No subtitle at this point</string>
   <string name="capture_no_video_in_vlc">No video open in VLC</string>
@@ -36,4 +32,19 @@
   <string name="filter_unmarked">Unmarked · %1$d</string>
   <string name="filter_unmarked_empty">No sentence left to mark</string>
   <string name="filter_all_marked">All marked</string>
+  <string name="shortcut_vlc_with_capture">VLC + capture</string>
+  <string name="vlc_not_installed">VLC is not installed</string>
+  <string name="settings_title">Settings</string>
+  <string name="settings_back">Back</string>
+  <string name="settings_script_address">Script address</string>
+  <string name="settings_vlc_shortcut">VLC + capture on the home screen</string>
+  <string name="settings_vlc_shortcut_hint">Opens VLC with the capture already on</string>
+  <string name="shortcut_pin_refused">The home screen did not accept the shortcut</string>
+  <string name="send_needs_script_address">Save the spreadsheet address to send</string>
+  <string name="settings_xiaomi_shortcut_permission">Allow shortcuts (Xiaomi)</string>
+  <string name="settings_vlc_shortcut_pinned">Already on the home screen</string>
+  <string name="settings_section_spreadsheet">Spreadsheet</string>
+  <string name="settings_section_shortcut">Shortcut</string>
+  <string name="settings_script_address_hint">Ends in /exec</string>
+  <string name="settings_xiaomi_shortcut_permission_hint">If nothing appears, allow it once</string>
 </resources>

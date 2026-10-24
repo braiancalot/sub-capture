@@ -28,8 +28,8 @@ and a missing example with Gemini, then formats them for Anki. See
 
 | File | Role |
 | --- | --- |
-| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, starts the send to the spreadsheet and shows the script address dialog. |
-| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The single screen: list, long-press multi-select to send or delete. During a selection the top bar holds the count and delete, away from send at the bottom. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). The overlay's Views read the same values from `res/values/colors.xml`. |
+| `MainActivity.kt` | Hosts the Compose screen. Requests the overlay and video permissions, starts and stops `OverlayService`, starts the send to the spreadsheet and switches between the list and the settings. |
+| `SentenceListScreen.kt`, `SentenceRow.kt`, `SelectionBar.kt`, `SubCaptureTheme.kt` | The list screen: long-press multi-select to send or delete, and a gear in the top bar that opens the settings. During a selection the top bar holds the count and delete, away from send at the bottom. Each line is a plain row with a hairline under it, not a boxed card. Selection only recolors the row, so nothing moves. Selection state lives in the composable. Colors and gutter come from the design system tokens and are named once in `SubCaptureTheme.kt`, which also sets the font (Figtree, bundled in `res/font/`). The overlay's Views read the same values from `res/values/colors.xml`. |
 | `ScreenFab.kt`, `CaptureToggleFab.kt` | The round button at the bottom right: it starts and stops the capture, icon only with its label as a tooltip, and gives way to send during a selection. |
 | `SentenceFilter.kt`, `SentenceFilterChips.kt` | The "unmarked" filter: chips above the list, shown while a line awaits a marked word. Marking the last one turns them into a short completion that then folds away, so the list never jumps. The filter is taken when it opens, by capture time, so a line marked inside it stays in sight. Pure choice of the visible lines in `SentenceFilter.kt`. |
 | `EmptyListMessage.kt` | What the empty list shows: an icon, what will appear there and the next step. |
@@ -40,7 +40,7 @@ and a missing example with Gemini, then formats them for Anki. See
 | `SpreadsheetRows.kt` | Pure choice of the selected lines that go to the spreadsheet, oldest first, the rows of a line (one per run of adjacent marked words) and whether a line still awaits a marked word. |
 | `SpreadsheetScriptPost.kt` | The POST to the spreadsheet's script. Pure checks of the script's answer and of the shape of its address. |
 | `SpreadsheetSend.kt` | One send: rows, POST, marking the lines as sent, the toast with the outcome and the log reason. |
-| `ScriptAddressDialog.kt` | The box that asks for the script address, built from the design system tokens. |
+| `SettingsScreen.kt`, `ScriptAddressField.kt` | The settings, opened from the gear in the top bar: the script address, edited in place and saved as soon as it is valid, and the request to pin the VLC shortcut to the home screen. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files and the saved script address. |
 | `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time, the marked word positions and whether it was sent to the spreadsheet. A text already in the list is not added again. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
@@ -59,10 +59,12 @@ and a missing example with Gemini, then formats them for Anki. See
 | `OverlayCloseTarget.kt` | The circle shown at the bottom of the screen while the button is dragged. Dropping the button on it stops the capture. |
 | `OverlayButtonGeometry.kt` | Pure tap-versus-drag, snap-target and close-target catch math. |
 | `CaptureTileService.kt` | Quick Settings tile that starts and stops the capture without opening the app. Opens the app instead when a permission is missing. |
+| `WatchInVlcActivity.kt`, `VlcShortcut.kt` | The "VLC + capture" shortcut: an activity with no screen that starts the capture and opens VLC, or opens the app when a permission is missing. The shortcut is published from code at each app start and can be pinned from the settings. |
 
 Data flow:
 
-1. The user starts the capture, from the app or from the Quick Settings tile. `MainActivity` sends
+1. The user starts the capture, from the app, from the Quick Settings tile or from the launcher
+   shortcut that also opens VLC. `MainActivity` sends
    them to the overlay permission screen if it is missing, asks for the video permission if
    missing, then starts `OverlayService`. The tile starts the service itself, and opens the app
    only when a permission is missing.
@@ -82,7 +84,7 @@ Data flow:
 6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
 7. The user selects lines and sends them. Lines with a marked word and not sent yet become rows,
    which go in one POST to the spreadsheet's script. When the script confirms the count, the lines
-   are marked as sent. The first send asks for the script address instead.
+   are marked as sent. A send with no script address opens the settings instead.
 
 Failures are logged to Logcat under the `OverlayService` tag with the concrete reason, and shown to
 the user in the same bubble. The debug build also logs each capture's position, file and line
@@ -363,7 +365,7 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   capture goes through `CaptureFeedbackBubble` instead.
 - **The script address is a password.** Anyone holding it can write to the spreadsheet, and the
   repository and the APK are public. It MUST NOT appear in the code, the logs, the docs or a
-  commit. Each build asks for it on its first send, see `docs/runbook-spreadsheet-script.md`.
+  commit. Each build keeps its own, set in the settings, see `docs/runbook-spreadsheet-script.md`.
 - **Apps Script reports a failed run with status 200 and an HTML page.** Only the `written` count
   in the answer proves that the rows were written.
 - **A pushed script change does not reach the app's sends until the web app is redeployed.** Edit
@@ -371,6 +373,9 @@ Issues, PRDs and roadmaps live as markdown under `.scratch/<feature-slug>/`. The
   the menu first, or `doPost` fails.
 - **A send whose answer is lost writes twice on the retry.** The lines stay unsent in the app
   although the rows are in the sheet. Check the sheet before sending again after a failure.
+- **Xiaomi ignores a request to pin a shortcut without its own permission.** The request still
+  reports success, so the app cannot tell. The settings offer a link to Xiaomi's permission screen
+  for the app, where "Home screen shortcuts" must be allowed once per build.
 - **Dropping the button on the close target does not save that position.** The next start puts
   the button back where it last rested, not at the bottom of the screen.
 - **The overlay button position persists** in `SharedPreferences` (`overlay_button_position`)
