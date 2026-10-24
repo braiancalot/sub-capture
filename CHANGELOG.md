@@ -5,6 +5,20 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.12.0] - 2026-10-24
+
+### Added
+
+- A home screen shortcut opens VLC with the capture already on. Add it from the settings. On a
+  Xiaomi phone, if nothing appears, allow home screen shortcuts for the app once, from the link the
+  settings show.
+- A settings screen, opened from the gear at the top of the list.
+
+### Changed
+
+- The spreadsheet address is edited in the settings and saved as soon as it is valid. Holding the
+  send button no longer opens it, and sending without an address opens the settings.
+
 ## [2.11.1] - 2026-10-22
 
 ### Fixed
