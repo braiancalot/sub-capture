@@ -5,6 +5,22 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.12.1] - 2026-10-31
+
+### Changed
+
+- The filter of sentences without a marked word is now a single chip that turns on and off, instead
+  of two options side by side. When every sentence in it is marked, the chip says so and still
+  closes the filter.
+- Opening the filter goes to the top of the list, and closing it returns to where you were.
+
+### Fixed
+
+- Sentences captured while the filter was open now show up in it when you come back to the app.
+  Sentences you already marked leave it at that point, and it closes when nothing is left to mark.
+- Deleting sentences no longer claims that everything is marked, and no longer leaves the filter
+  stuck over an empty list.
+
 ## [2.12.0] - 2026-10-24
 
 ### Added
