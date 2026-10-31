@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,15 +49,22 @@ fun SentenceListScreen(
     // Keyed on the list: indices shift when a capture arrives, so a stale selection MUST be dropped
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
     BackHandler(enabled = selection.value.isNotEmpty()) { selection.value = emptySet() }
-    val unmarkedFilter = remember { mutableStateOf<Set<Long>?>(null) }
-    val visibleIndices = visibleSentenceIndices(sentences, unmarkedFilter.value)
+    val filterState = remember { SentenceFilterState() }
+    val listState = rememberLazyListState()
+    val visibleIndices = visibleSentenceIndices(sentences, filterState.unmarkedFilter.value)
     Scaffold { innerPadding ->
         // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
-                ScreenTopBar(selection, onDeleteSentences, onOpenSettings)
-                SentenceFilter(sentences, unmarkedFilter, selection)
-                SentenceList(sentences, visibleIndices, selection, onToggleMarkedWord) {
+                ScreenTopBar(selection, onOpenSettings) { indices ->
+                    filterState.beforeDelete(sentences, indices)
+                    onDeleteSentences(indices)
+                }
+                SentenceFilterBar(sentences, filterState, selection, listState)
+                SentenceList(sentences, visibleIndices, selection, listState, { index, wordIndex ->
+                    filterState.beforeToggleWord(sentences, index)
+                    onToggleMarkedWord(index, wordIndex)
+                }) {
                     EmptyListMessage(isOverlayRunning)
                 }
             }
@@ -68,24 +77,10 @@ fun SentenceListScreen(
 }
 
 @Composable
-private fun SentenceFilter(
-    sentences: List<CapturedSentence>,
-    unmarkedFilter: MutableState<Set<Long>?>,
-    selection: MutableState<Set<Int>>,
-) {
-    val unmarkedCount = sentences.count(::isAwaitingWord)
-    SentenceFilterChips(unmarkedFilter.value != null, unmarkedCount) { isOnlyUnmarked ->
-        unmarkedFilter.value = if (isOnlyUnmarked) unmarkedFilterOf(sentences) else null
-        // A selection MUST NOT outlive the filter, or a delete would reach lines out of sight
-        selection.value = emptySet()
-    }
-}
-
-@Composable
 private fun ScreenTopBar(
     selection: MutableState<Set<Int>>,
-    onDeleteSentences: (Set<Int>) -> Unit,
     onOpenSettings: () -> Unit,
+    onDeleteSentences: (Set<Int>) -> Unit,
 ) {
     if (selection.value.isEmpty()) return ScreenHeader(onOpenSettings)
     SelectionTopBar(
@@ -115,15 +110,15 @@ private fun SentenceList(
     sentences: List<CapturedSentence>,
     visibleIndices: List<Int>,
     selection: MutableState<Set<Int>>,
+    listState: LazyListState,
     onToggleMarkedWord: (Int, Int) -> Unit,
     emptyList: @Composable () -> Unit,
 ) {
     if (sentences.isEmpty()) return emptyList()
-    if (visibleIndices.isEmpty()) return NothingToMarkMessage()
     val isSelecting = selection.value.isNotEmpty()
     val zone = remember { ZoneId.systemDefault() }
     val visibleSentences = visibleIndices.map(sentences::get)
-    LazyColumn(contentPadding = listPadding) {
+    LazyColumn(state = listState, contentPadding = listPadding) {
         itemsIndexed(visibleIndices) { position, index ->
             dayOpenedAt(visibleSentences, position, zone)?.let { CaptureDayLabel(it) }
             SentenceRow(
@@ -132,12 +127,5 @@ private fun SentenceList(
                 onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
             )
         }
-    }
-}
-
-@Composable
-private fun NothingToMarkMessage() {
-    Box(Modifier.fillMaxSize().padding(top = 48.dp), contentAlignment = Alignment.TopCenter) {
-        Text(stringResource(R.string.filter_unmarked_empty), color = MutedText, fontSize = 15.sp)
     }
 }

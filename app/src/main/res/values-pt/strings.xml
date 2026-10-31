@@ -25,9 +25,7 @@
     <item quantity="many">%d selecionadas</item>
     <item quantity="other">%d selecionadas</item>
   </plurals>
-  <string name="filter_all">Todas</string>
   <string name="filter_unmarked">Não marcadas · %1$d</string>
-  <string name="filter_unmarked_empty">Nenhuma frase para marcar</string>
   <string name="filter_all_marked">Tudo marcado</string>
   <string name="shortcut_vlc_with_capture">VLC + captura</string>
   <string name="vlc_not_installed">O VLC não está instalado</string>

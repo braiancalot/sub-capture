@@ -28,9 +28,7 @@
     <item quantity="one">%d selected</item>
     <item quantity="other">%d selected</item>
   </plurals>
-  <string name="filter_all">All</string>
   <string name="filter_unmarked">Unmarked · %1$d</string>
-  <string name="filter_unmarked_empty">No sentence left to mark</string>
   <string name="filter_all_marked">All marked</string>
   <string name="shortcut_vlc_with_capture">VLC + capture</string>
   <string name="vlc_not_installed">VLC is not installed</string>

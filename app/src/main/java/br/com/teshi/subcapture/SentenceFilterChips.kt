@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,30 +34,29 @@ import kotlinx.coroutines.delay
 private const val ALL_MARKED_HOLD_MILLIS = 1100L
 
 @Composable
-fun SentenceFilterChips(isOnlyUnmarked: Boolean, unmarkedCount: Int, onOnlyUnmarkedChange: (Boolean) -> Unit) {
+fun SentenceFilterChips(
+    isOnlyUnmarked: Boolean,
+    unmarkedCount: Int,
+    isCompletionPending: MutableState<Boolean>,
+    onOnlyUnmarkedChange: (Boolean) -> Unit,
+) {
     val isAllMarked = unmarkedCount == 0 && !isOnlyUnmarked
     val isShown = remember { mutableStateOf(!isAllMarked) }
     LaunchedEffect(isAllMarked) {
-        if (!isAllMarked) return@LaunchedEffect run { isShown.value = true }
-        delay(ALL_MARKED_HOLD_MILLIS)
+        if (!isAllMarked) {
+            isCompletionPending.value = false
+            isShown.value = true
+            return@LaunchedEffect
+        }
+        if (isCompletionPending.value) delay(ALL_MARKED_HOLD_MILLIS)
         isShown.value = false
     }
     AnimatedVisibility(isShown.value, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        Row(
-            modifier = Modifier.padding(start = ScreenGutter, end = ScreenGutter, bottom = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (isAllMarked) return@Row AllMarkedBadge()
-            FilterChoice(stringResource(R.string.filter_all), !isOnlyUnmarked, onClick = { onOnlyUnmarkedChange(false) })
-            UnmarkedChoice(isOnlyUnmarked, unmarkedCount) { onOnlyUnmarkedChange(true) }
+        Row(Modifier.padding(start = ScreenGutter, end = ScreenGutter, bottom = 4.dp)) {
+            if (isAllMarked && isCompletionPending.value) return@Row AllMarkedBadge()
+            UnmarkedToggle(isOnlyUnmarked, unmarkedCount) { onOnlyUnmarkedChange(!isOnlyUnmarked) }
         }
     }
-}
-
-@Composable
-private fun UnmarkedChoice(isSelected: Boolean, unmarkedCount: Int, onClick: () -> Unit) {
-    if (unmarkedCount > 0) return FilterChoice(stringResource(R.string.filter_unmarked, unmarkedCount), isSelected, onClick)
-    FilterChoice(stringResource(R.string.filter_all_marked), isSelected, onClick, leadingIcon = { CheckIcon() })
 }
 
 @Composable
@@ -79,17 +79,20 @@ private fun CheckIcon() {
 }
 
 @Composable
-private fun FilterChoice(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    leadingIcon: (@Composable () -> Unit)? = null,
-) {
+private fun CloseIcon() {
+    Icon(painterResource(R.drawable.icon_close), null, Modifier.size(FilterChipDefaults.IconSize), AccentLavender)
+}
+
+@Composable
+private fun UnmarkedToggle(isOn: Boolean, unmarkedCount: Int, onClick: () -> Unit) {
+    val isFinished = isOn && unmarkedCount == 0
+    val label = if (isFinished) stringResource(R.string.filter_all_marked) else stringResource(R.string.filter_unmarked, unmarkedCount)
     FilterChip(
-        selected = isSelected,
+        selected = isOn,
         onClick = onClick,
         label = { Text(label) },
-        leadingIcon = leadingIcon,
+        leadingIcon = if (isFinished) ({ CheckIcon() }) else null,
+        trailingIcon = if (isOn) ({ CloseIcon() }) else null,
         shape = CircleShape,
         // Filled like every other surface of the app, which draws no outlines
         border = null,
