@@ -1,4 +1,5 @@
-const GEMINI_MODEL = "gemini-flash-latest";
+// Pinned one step behind the newest Flash, which -latest follows and which answers 503 the most
+const GEMINI_MODEL = "gemini-3.6-flash";
 
 const DEFINITION_INSTRUCTIONS = [
   "You write vocabulary flashcards for an advanced learner of American English.",
@@ -78,7 +79,12 @@ function definitionRequestBody(pending, examples) {
   return {
     systemInstruction: { parts: [{ text: DEFINITION_INSTRUCTIONS }] },
     contents: [{ role: "user", parts: [{ text: definitionPrompt(pending, examples) }] }],
-    generationConfig: { responseMimeType: "application/json", responseSchema: DEFINITION_SCHEMA },
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: DEFINITION_SCHEMA,
+      // The default level took 3x as long with no better answers on the eval cases
+      thinkingConfig: { thinkingLevel: "low" },
+    },
   };
 }
 
