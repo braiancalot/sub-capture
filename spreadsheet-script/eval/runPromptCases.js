@@ -18,7 +18,7 @@ function pendingRows() {
 
 async function runOnce(key) {
   const pending = pendingRows();
-  const response = await fetch(script.geminiUrl(), {
+  const response = await fetch(script.geminiUrl(process.argv[3] || "gemini-3.6-flash"), {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify(script.definitionRequestBody(pending, cases.style)),

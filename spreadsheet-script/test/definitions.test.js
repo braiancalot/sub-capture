@@ -112,3 +112,20 @@ test("an overloaded or rate-limited Gemini is retried, a refused request is not"
   [429, 500, 503, 504].forEach(status => assert.equal(script.isGeminiBusy(status), true, String(status)));
   [200, 400, 403, 404].forEach(status => assert.equal(script.isGeminiBusy(status), false, String(status)));
 });
+
+test("the first attempt goes to the main model at once", () => {
+  assert.deepEqual(plain(script.geminiAttemptPlan(0, 0)), { model: "gemini-3.6-flash", waitMs: 0 });
+});
+
+test("a busy model hands over to the other one, waiting longer each round", () => {
+  const plans = [1, 2, 3, 4].map(attempt => plain(script.geminiAttemptPlan(attempt, 0)));
+  assert.deepEqual(plans.map(plan => plan.model), [
+    "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash",
+  ]);
+  plans.slice(1).forEach((plan, i) => assert.ok(plan.waitMs >= plans[i].waitMs));
+});
+
+test("no retry starts late enough to run into Apps Script's 6-minute limit", () => {
+  assert.notEqual(script.geminiAttemptPlan(5, 60 * 1000), null);
+  assert.equal(script.geminiAttemptPlan(5, 3 * 60 * 1000), null);
+});

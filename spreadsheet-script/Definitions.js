@@ -1,5 +1,5 @@
 // Pinned one step behind the newest Flash, which -latest follows and which answers 503 the most
-const GEMINI_MODEL = "gemini-3.6-flash";
+const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash-lite"];
 
 const DEFINITION_INSTRUCTIONS = [
   "You write vocabulary flashcards for an advanced learner of American English.",
@@ -39,8 +39,9 @@ const DEFINITION_SCHEMA = {
   },
 };
 
-// Waits before each retry, kept short enough for Apps Script's 6-minute run limit
-const GEMINI_RETRY_DELAYS_MS = [5000, 15000, 30000];
+const GEMINI_RETRY_WAITS_MS = [2000, 5000, 15000, 30000];
+// Leaves room in Apps Script's 6-minute run for one last slow call and the formatting
+const GEMINI_TIME_BUDGET_MS = 150 * 1000;
 
 function requestDefinitions(pending, examples) {
   const apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
@@ -53,26 +54,38 @@ function requestDefinitions(pending, examples) {
     muteHttpExceptions: true,
   });
   const status = response.getResponseCode();
+  if (isGeminiBusy(status)) {
+    throw new Error("every Gemini model stayed busy for " + GEMINI_TIME_BUDGET_MS / 1000 + "s (last answer HTTP " +
+      status + "): try again in a few minutes");
+  }
   if (status !== 200) throw new Error("Gemini answered HTTP " + status + ": " + response.getContentText().slice(0, 300));
   return parsedDefinitions(response.getContentText(), pending);
 }
 
 function fetchGeminiWithRetries(options) {
-  let response = UrlFetchApp.fetch(geminiUrl(), options);
-  for (const delay of GEMINI_RETRY_DELAYS_MS) {
+  const startedAt = Date.now();
+  let response = null;
+  for (let attempt = 0; ; attempt++) {
+    const plan = geminiAttemptPlan(attempt, Date.now() - startedAt);
+    if (!plan) return response;
+    if (plan.waitMs > 0) Utilities.sleep(plan.waitMs);
+    response = UrlFetchApp.fetch(geminiUrl(plan.model), options);
     if (!isGeminiBusy(response.getResponseCode())) return response;
-    Utilities.sleep(delay);
-    response = UrlFetchApp.fetch(geminiUrl(), options);
   }
-  return response;
+}
+
+function geminiAttemptPlan(attempt, elapsedMs) {
+  const waitMs = attempt === 0 ? 0 : GEMINI_RETRY_WAITS_MS[Math.min(attempt, GEMINI_RETRY_WAITS_MS.length) - 1];
+  if (elapsedMs + waitMs > GEMINI_TIME_BUDGET_MS) return null;
+  return { model: GEMINI_MODELS[attempt % GEMINI_MODELS.length], waitMs };
 }
 
 function isGeminiBusy(status) {
   return [429, 500, 503, 504].includes(status);
 }
 
-function geminiUrl() {
-  return "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent";
+function geminiUrl(model) {
+  return "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
 }
 
 function definitionRequestBody(pending, examples) {
