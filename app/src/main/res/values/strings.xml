@@ -19,6 +19,7 @@
   <string name="spreadsheet_nothing_to_send">Nothing to send: sentences already sent or with no marked word</string>
   <string name="spreadsheet_send_failed">No answer from the spreadsheet. Check the internet and the script address.</string>
   <string name="overlay_permission_needed">Allow display over other apps, then tap again</string>
+  <string name="capture_discard">Discard</string>
   <string name="capture_no_subtitle_at_position">No subtitle at this point</string>
   <string name="capture_no_video_in_vlc">No video open in VLC</string>
   <string name="capture_video_file_not_found">Video file not found</string>

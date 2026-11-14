@@ -47,7 +47,7 @@ class OverlayService : Service() {
         super.onCreate()
         startForeground(NOTIFICATION_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         floatingCaptureButton = FloatingCaptureButton(this, ::captureSubtitle, ::openApp, ::stopSelf).also { it.show() }
-        captureFeedbackBubble = CaptureFeedbackBubble(this)
+        captureFeedbackBubble = CaptureFeedbackBubble(this, sentenceStore::discard)
         vlcConnection.connect()
         runningState.value = true
     }
@@ -112,8 +112,8 @@ class OverlayService : Service() {
             captureFeedbackBubble?.showFailure(getString(R.string.capture_no_subtitle_at_position))
             return
         }
-        sentenceStore.prepend(subtitle, System.currentTimeMillis())
-        captureFeedbackBubble?.show(subtitle)
+        val addedSentence = sentenceStore.prepend(subtitle, System.currentTimeMillis())
+        captureFeedbackBubble?.show(subtitle, addedSentence)
     }
 
     private fun finishCaptureWithError(userMessage: String, reason: String) {

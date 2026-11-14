@@ -22,9 +22,17 @@ class SentenceStore(private val sentencesFile: File) {
     private val newestFirstSentences = MutableStateFlow(readSentences())
     val sentences: StateFlow<List<CapturedSentence>> = newestFirstSentences.asStateFlow()
 
-    fun prepend(text: String, capturedAtMillis: Long) {
-        if (newestFirstSentences.value.any { it.text == text }) return
-        replaceWith(listOf(CapturedSentence(text, capturedAtMillis)) + newestFirstSentences.value)
+    fun prepend(text: String, capturedAtMillis: Long): CapturedSentence? {
+        if (newestFirstSentences.value.any { it.text == text }) return null
+        val added = CapturedSentence(text, capturedAtMillis)
+        replaceWith(listOf(added) + newestFirstSentences.value)
+        return added
+    }
+
+    fun discard(capture: CapturedSentence) {
+        replaceWith(newestFirstSentences.value.filterNot {
+            it.text == capture.text && it.capturedAtMillis == capture.capturedAtMillis
+        })
     }
 
     fun removeAll(indices: Set<Int>) {

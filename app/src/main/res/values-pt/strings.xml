@@ -15,6 +15,7 @@
   <string name="spreadsheet_nothing_to_send">Nada para enviar: frases já enviadas ou sem palavra marcada</string>
   <string name="spreadsheet_send_failed">Sem resposta da planilha. Confira a internet e o endereço do script.</string>
   <string name="overlay_permission_needed">Permita sobrepor a outros apps e toque de novo</string>
+  <string name="capture_discard">Descartar</string>
   <string name="capture_no_subtitle_at_position">Nenhuma legenda neste ponto</string>
   <string name="capture_no_video_in_vlc">Nenhum vídeo aberto no VLC</string>
   <string name="capture_video_file_not_found">Arquivo do vídeo não encontrado</string>

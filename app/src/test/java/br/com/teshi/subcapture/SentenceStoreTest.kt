@@ -47,6 +47,36 @@ class SentenceStoreTest {
     }
 
     @Test
+    fun `prepend returns the sentence it added, and null for one already in the list`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+
+        assertEquals(CapturedSentence("first", 1000), sentenceStore.prepend("first", capturedAtMillis = 1000))
+        assertEquals(null, sentenceStore.prepend("first", capturedAtMillis = 2000))
+    }
+
+    @Test
+    fun `discard deletes the capture with that text and time, even after its words were marked`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        sentenceStore.prepend("first", capturedAtMillis = 1000)
+        val added = sentenceStore.prepend("second", capturedAtMillis = 2000)!!
+        sentenceStore.toggleMarkedWord(index = 0, wordIndex = 0)
+
+        sentenceStore.discard(added)
+
+        assertEquals(listOf("first"), savedTexts())
+    }
+
+    @Test
+    fun `discard leaves a line that was captured again at another time`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        sentenceStore.prepend("first", capturedAtMillis = 1000)
+
+        sentenceStore.discard(CapturedSentence("first", 2000))
+
+        assertEquals(listOf("first"), savedTexts())
+    }
+
+    @Test
     fun `toggleMarkedWord marks and unmarks words of one sentence and persists them`() {
         val sentenceStore = SentenceStore(sentencesFile)
         listOf("first", "second").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }

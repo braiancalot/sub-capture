@@ -2,75 +2,77 @@ package br.com.teshi.subcapture
 
 import android.content.Context
 import android.graphics.PixelFormat
-import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.WindowManager
-import android.widget.TextView
+import android.widget.LinearLayout
 
-private const val BUBBLE_VISIBLE_MILLIS = 3500L
-private const val BUBBLE_MAX_WIDTH_FRACTION = 0.8f
+private const val BUBBLE_VISIBLE_MILLIS = 5000L
+private const val BUBBLE_GAP_DP = 8
 
-class CaptureFeedbackBubble(private val context: Context) {
+class CaptureFeedbackBubble(private val context: Context, private val onDiscard: (CapturedSentence) -> Unit) {
     private val windowManager = context.getSystemService(WindowManager::class.java)
     private val hideHandler = Handler(Looper.getMainLooper())
     private val density = context.resources.displayMetrics.density
-    private val bubbleView = buildBubbleView()
+    private val stackView = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+    private var stack = emptyList<CaptureBubble>()
     private var isShown = false
 
-    fun show(message: String) = display(message, R.color.primaryText)
+    fun show(message: String, addedSentence: CapturedSentence?) =
+        push(CaptureBubble(message, isFailure = false, addedSentence))
 
-    fun showFailure(message: String) = display(message, R.color.dangerCoral)
-
-    private fun display(message: String, textColorId: Int) {
-        bubbleView.text = message
-        bubbleView.setTextColor(context.getColor(textColorId))
-        bubbleView.maxWidth = (context.resources.displayMetrics.widthPixels * BUBBLE_MAX_WIDTH_FRACTION).toInt()
-        if (!isShown) windowManager.addView(bubbleView, bubbleLayoutParams())
-        isShown = true
-        hideHandler.removeCallbacksAndMessages(null)
-        hideHandler.postDelayed(::hide, BUBBLE_VISIBLE_MILLIS)
-    }
+    fun showFailure(message: String) = push(CaptureBubble(message, isFailure = true, addedSentence = null))
 
     fun remove() {
         hideHandler.removeCallbacksAndMessages(null)
-        hide()
+        redraw(emptyList())
     }
 
-    private fun hide() {
+    private fun push(bubble: CaptureBubble) {
+        redraw(pushedCaptureBubble(stack, bubble))
+        hideHandler.removeCallbacksAndMessages(null)
+        hideHandler.postDelayed(::remove, BUBBLE_VISIBLE_MILLIS)
+    }
+
+    private fun discard(bubble: CaptureBubble) {
+        bubble.addedSentence?.let(onDiscard)
+        redraw(withoutCaptureBubble(stack, bubble))
+    }
+
+    private fun redraw(updatedStack: List<CaptureBubble>) {
+        stack = updatedStack
+        stackView.removeAllViews()
+        stack.forEachIndexed { position, bubble -> stackView.addView(stackedBubbleView(bubble, position)) }
+        if (stack.isEmpty()) return hideWindow()
+        if (!isShown) windowManager.addView(stackView, stackLayoutParams())
+        isShown = true
+    }
+
+    private fun stackedBubbleView(bubble: CaptureBubble, position: Int): LinearLayout =
+        captureBubbleView(context, bubble) { discard(bubble) }.apply {
+            val gap = if (position == 0) 0 else (BUBBLE_GAP_DP * density).toInt()
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = gap; gravity = Gravity.CENTER_HORIZONTAL }
+        }
+
+    private fun hideWindow() {
         if (!isShown) return
-        windowManager.removeView(bubbleView)
+        windowManager.removeView(stackView)
         isShown = false
     }
 
-    private fun buildBubbleView(): TextView = TextView(context).apply {
-        val padding = (12 * density).toInt()
-        setPadding(padding, padding, padding, padding)
-        textSize = 15f
-        typeface = context.resources.getFont(R.font.figtree_regular)
-        maxLines = 4
-        ellipsize = TextUtils.TruncateAt.END
-        gravity = Gravity.CENTER
-        background = GradientDrawable().apply {
-            setColor(context.getColor(R.color.raisedSurface))
-            cornerRadius = 14 * density
-        }
-    }
-
-    private fun bubbleLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(
+    private fun stackLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
         WindowManager.LayoutParams.WRAP_CONTENT,
         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
         PixelFormat.TRANSLUCENT
     ).apply {
         gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
         y = (48 * density).toInt()
-        // Android 12+ blocks touches passing through an overlay more opaque than this
         alpha = 0.8f
     }
 }

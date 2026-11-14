@@ -42,7 +42,7 @@ and a missing example with Gemini, then formats them for Anki. See
 | `SpreadsheetSend.kt` | One send: rows, POST, marking the lines as sent, the toast with the outcome and the log reason. |
 | `SettingsScreen.kt`, `ScriptAddressField.kt` | The settings, opened from the gear in the top bar: the script address, edited in place and saved as soon as it is valid, and the request to pin the VLC shortcut to the home screen. |
 | `SubCaptureApplication.kt` | Owns the one `SentenceStore`, shared by the activity and the service, plus the `Context` helpers used across files and the saved script address. |
-| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time, the marked word positions and whether it was sent to the spreadsheet. A text already in the list is not added again. |
+| `SentenceStore.kt` | Newest-first list as a `StateFlow`, persisted as a JSON array in `filesDir/captures.json`. Each entry has the text, the capture time, the marked word positions and whether it was sent to the spreadsheet. A text already in the list is not added again. A capture is discarded by its text and time. |
 | `OverlayService.kt` | Foreground `Service` (`foregroundServiceType="specialUse"`). Lifecycle, notification and the capture sequence. Its companion exposes `isRunning`, `start` and `stop`. |
 | `VlcSubtitleCapture.kt` | One capture: playback, file, cues (cached for the last file, preloaded when VLC changes video), line. Turns each failure into a `SubtitleCaptureFailure` carrying the string resource shown in the bubble and the log reason. |
 | `VlcPlayback.kt` | Connects to VLC's `MediaBrowserService`, reads title, duration and position from its media session and reports when VLC changes video. A pure function decides whether the session has a video open. |
@@ -53,7 +53,7 @@ and a missing example with Gemini, then formats them for Anki. See
 | `SubtitleLookup.kt` | Pure choice of the line for a playback position. |
 | `SubtitleLetterCase.kt` | Pure rewrite of an all-caps subtitle track into sentence case, decided for the track as a whole. |
 | `SubtitleClosingPunctuation.kt` | Pure removal of the period or comma that closes a line. A question mark, an exclamation mark and an ellipsis stay. |
-| `CaptureFeedbackBubble.kt` | Overlay text shown for a few seconds after each tap: the captured line, or the failure in coral. Replaced by the next tap. |
+| `CaptureFeedbackBubble.kt`, `CaptureBubbleView.kt`, `CaptureBubbleStack.kt` | Overlay bubbles shown after each tap: the captured line, or the failure in coral. Up to three stack, newest on top, and all leave 5s after the last tap. A tap on a line already stacked moves its bubble up instead of adding one. Each bubble's X discards the line that tap added, never one that was already in the list. The bubbles take touches, so a tap on them does not reach VLC. Pure stack rules in `CaptureBubbleStack.kt`. |
 | `FloatingCaptureButton.kt` | Inflates `overlay_layout.xml` into the `WindowManager` overlay. Tap, long press to open the app, drag, snap to edge, saved position. |
 | `CaptureButtonPulse.kt` | The blink of the button while a capture that reads the file is being read. |
 | `OverlayCloseTarget.kt` | The circle shown at the bottom of the screen while the button is dragged. Dropping the button on it stops the capture. |
@@ -78,7 +78,7 @@ Data flow:
    several, and reads the cues of its first text subtitle track. The cues of the last file stay in
    memory, so a tap reads the file only when the preload has not done it.
 5. The line on screen at that position is prepended to `SentenceStore`, which persists it, and
-   shown in a bubble over the video so the user can check it against the screen. Lines on screen
+   shown in a bubble over the video so the user can check it against the screen and discard it. Lines on screen
    together are joined with " / ". With none on screen it takes a line starting within 500ms, else
    the last one that ended within 5s, else nothing is added and the bubble says so.
 6. `MainActivity` collects `SentenceStore.sentences` and `OverlayService.isRunning`.
@@ -197,7 +197,7 @@ JUnit 4, JVM unit tests only, in `app/src/test/java/br/com/teshi/subcapture/`. T
 functions have their own tests in `spreadsheet-script/test/`, on Node's built-in runner, which
 load the script files into one shared scope the way Apps Script does. Run commands are
 above. Covered: the Matroska subtitle reader, the cue text cleanup, the sentence casing of
-all-caps tracks, the closing punctuation dropped from a line, the lookup by position, the
+all-caps tracks, the stack of capture bubbles, the closing punctuation dropped from a line, the lookup by position, the
 file matching, the overlay button geometry, the selection toggle, the unmarked filter, the rows a line gives the
 spreadsheet, the script's answer and the shape of its address, the split into words, the
 grouping and naming of days, whether VLC's session has a video open, and `SentenceStore` against a
