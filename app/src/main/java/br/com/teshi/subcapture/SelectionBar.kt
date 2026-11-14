@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 val ScreenTopBarHeight = 64.dp
 
 @Composable
-fun SelectionTopBar(selectedCount: Int, onClear: () -> Unit, onDelete: () -> Unit) {
+fun SelectionTopBar(selectedCount: Int, onClear: () -> Unit, onMarkSent: () -> Unit, onDelete: () -> Unit) {
     val barModifier = Modifier.fillMaxWidth().height(ScreenTopBarHeight).padding(horizontal = 8.dp)
     Row(barModifier, verticalAlignment = Alignment.CenterVertically) {
         TopBarIconButton(R.drawable.icon_close, R.string.selection_clear, SecondaryText, onClear)
@@ -45,6 +45,7 @@ fun SelectionTopBar(selectedCount: Int, onClear: () -> Unit, onDelete: () -> Uni
             style = LocalTextStyle.current.copy(fontFeatureSettings = "tnum"),
         )
         Spacer(Modifier.weight(1f))
+        TopBarIconButton(R.drawable.icon_check, R.string.mark_selected_sent, SecondaryText, onMarkSent)
         TopBarIconButton(R.drawable.icon_trash, R.string.delete_selected, DangerCoral, onDelete)
     }
 }

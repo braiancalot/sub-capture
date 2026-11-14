@@ -42,6 +42,7 @@ fun SentenceListScreen(
     isSendingToSpreadsheet: Boolean,
     onToggleCapture: () -> Unit,
     onDeleteSentences: (Set<Int>) -> Unit,
+    onMarkSentencesSent: (Set<Int>) -> Unit,
     onToggleMarkedWord: (Int, Int) -> Unit,
     onSendSelection: (Set<Int>) -> Unit,
     onOpenSettings: () -> Unit,
@@ -56,7 +57,7 @@ fun SentenceListScreen(
         // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
-                ScreenTopBar(selection, onOpenSettings) { indices ->
+                ScreenTopBar(selection, onOpenSettings, onMarkSentencesSent) { indices ->
                     filterState.beforeDelete(sentences, indices)
                     onDeleteSentences(indices)
                 }
@@ -80,12 +81,14 @@ fun SentenceListScreen(
 private fun ScreenTopBar(
     selection: MutableState<Set<Int>>,
     onOpenSettings: () -> Unit,
+    onMarkSentencesSent: (Set<Int>) -> Unit,
     onDeleteSentences: (Set<Int>) -> Unit,
 ) {
     if (selection.value.isEmpty()) return ScreenHeader(onOpenSettings)
     SelectionTopBar(
         selectedCount = selection.value.size,
         onClear = { selection.value = emptySet() },
+        onMarkSent = { onMarkSentencesSent(selection.value) },
         onDelete = { onDeleteSentences(selection.value) },
     )
 }

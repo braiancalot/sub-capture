@@ -66,6 +66,7 @@ class MainActivity : ComponentActivity() {
             isSendingToSpreadsheet = isSendingToSpreadsheet.value,
             onToggleCapture = { if (isOverlayRunning) OverlayService.stop(this) else requestCapture() },
             onDeleteSentences = sentenceStore::removeAll,
+            onMarkSentencesSent = { indices -> sentenceStore.markSent(indices.map { sentences[it].text }.toSet()) },
             onToggleMarkedWord = sentenceStore::toggleMarkedWord,
             onSendSelection = ::sendToSpreadsheet,
             onOpenSettings = { isShowingSettings.value = true },
