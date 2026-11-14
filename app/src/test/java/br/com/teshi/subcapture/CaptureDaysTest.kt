@@ -26,10 +26,10 @@ class CaptureDaysTest {
         val openers = newestFirstSentences.indices.map { dayOpenedAt(newestFirstSentences, it, saoPaulo) }
 
         val expected = listOf(
-            CaptureDay(LocalDate.of(2026, 10, 11), captureCount = 1),
-            CaptureDay(LocalDate.of(2026, 10, 10), captureCount = 2),
+            LocalDate.of(2026, 10, 11),
+            LocalDate.of(2026, 10, 10),
             null,
-            CaptureDay(LocalDate.of(2026, 10, 8), captureCount = 1),
+            LocalDate.of(2026, 10, 8),
         )
         assertEquals(expected, openers)
     }
@@ -47,7 +47,7 @@ class CaptureDaysTest {
     fun `the day follows the given time zone, not UTC`() {
         val lateEvening = listOf(capturedAt("2026-10-10T22:30:00"))
 
-        assertEquals(LocalDate.of(2026, 10, 10), dayOpenedAt(lateEvening, 0, saoPaulo)?.date)
-        assertEquals(LocalDate.of(2026, 10, 11), dayOpenedAt(lateEvening, 0, ZoneId.of("UTC"))?.date)
+        assertEquals(LocalDate.of(2026, 10, 10), dayOpenedAt(lateEvening, 0, saoPaulo))
+        assertEquals(LocalDate.of(2026, 10, 11), dayOpenedAt(lateEvening, 0, ZoneId.of("UTC")))
     }
 }

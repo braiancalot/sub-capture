@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 private const val SENT_LINE_ALPHA = 0.5f
 
 // Color only: a heavier weight widens the word and pushes the rest of the line
-private val markedWordStyle = SpanStyle(color = AccentLavender, background = AccentTint)
+private val markedWordStyle = SpanStyle(color = AccentLavender)
 
 @Composable
 fun MarkableSentenceText(

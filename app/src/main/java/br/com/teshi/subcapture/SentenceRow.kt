@@ -19,7 +19,7 @@ val RowTintOverhang = 8.dp
 
 private val rowCornerRadius = 10.dp
 private val rowShape = RoundedCornerShape(rowCornerRadius)
-private val textPadding = Modifier.padding(horizontal = RowTintOverhang, vertical = 14.dp)
+private val textPadding = Modifier.padding(horizontal = RowTintOverhang, vertical = 20.dp)
 
 // Selection only recolors the row: nothing is added to the row, so the text never moves
 @Composable
@@ -41,7 +41,6 @@ fun SentenceRow(
             onClick = onTapRow,
             onLongClick = onToggleSelected,
         )
-        .rowDivider(isVisible = !isSelected)
     Box(rowModifier) {
         val textModifier = Modifier.fillMaxWidth().then(textPadding)
         MarkableSentenceText(sentence, textModifier, onTapWord, onLongPress = onToggleSelected)
@@ -54,12 +53,4 @@ private fun Modifier.selectionTint(isSelected: Boolean): Modifier = drawBehind {
     val inset = 3.dp.toPx()
     val tintSize = Size(size.width, size.height - 2 * inset)
     drawRoundRect(SelectedRowSurface, Offset(0f, inset), tintSize, CornerRadius(rowCornerRadius.toPx()))
-}
-
-private fun Modifier.rowDivider(isVisible: Boolean): Modifier = drawBehind {
-    if (!isVisible) return@drawBehind
-    val thickness = 1.dp.toPx()
-    val lineY = size.height - thickness / 2
-    val inset = RowTintOverhang.toPx()
-    drawLine(RaisedSurface, Offset(inset, lineY), Offset(size.width - inset, lineY), thickness)
 }
