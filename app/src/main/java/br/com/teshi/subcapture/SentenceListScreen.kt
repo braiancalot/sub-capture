@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -42,6 +43,7 @@ fun SentenceListScreen(
     isSendingToSpreadsheet: Boolean,
     onToggleCapture: () -> Unit,
     onDeleteSentences: (Set<Int>) -> Unit,
+    onRestoreSentence: (CapturedSentence, Int) -> Unit,
     onMarkSentencesSent: (Set<Int>) -> Unit,
     onToggleMarkedWord: (Int, Int) -> Unit,
     onSendSelection: (Set<Int>) -> Unit,
@@ -53,6 +55,13 @@ fun SentenceListScreen(
     val filterState = remember { SentenceFilterState() }
     val listState = rememberLazyListState()
     val visibleIndices = visibleSentenceIndices(sentences, filterState.unmarkedFilter.value)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val deleteWithUndo = rememberUndoableDelete(snackbarHostState, onDelete = { index ->
+        val deleted = sentences[index]
+        filterState.beforeDelete(sentences, setOf(index))
+        onDeleteSentences(setOf(index))
+        deleted
+    }, onRestore = onRestoreSentence)
     Scaffold { innerPadding ->
         // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
@@ -62,13 +71,15 @@ fun SentenceListScreen(
                     onDeleteSentences(indices)
                 }
                 SentenceFilterBar(sentences, filterState, selection, listState)
-                SentenceList(sentences, visibleIndices, selection, listState, { index, wordIndex ->
+                SentenceList(sentences, visibleIndices, selection, listState, deleteWithUndo, { index, wordIndex ->
                     filterState.beforeToggleWord(sentences, index)
                     onToggleMarkedWord(index, wordIndex)
                 }) {
                     EmptyListMessage(isOverlayRunning)
                 }
             }
+            val snackbarModifier = Modifier.align(Alignment.BottomCenter).padding(bottom = ScreenFabClearance)
+            UndoDeleteSnackbarHost(snackbarHostState, snackbarModifier)
             Box(Modifier.align(Alignment.BottomEnd)) {
                 if (selection.value.isEmpty()) return@Box CaptureToggleFab(isOverlayRunning, onToggleCapture)
                 SendSelectionButton(isSendingToSpreadsheet, onSend = { onSendSelection(selection.value) })
@@ -114,6 +125,7 @@ private fun SentenceList(
     visibleIndices: List<Int>,
     selection: MutableState<Set<Int>>,
     listState: LazyListState,
+    onSwipeDelete: (Int) -> Unit,
     onToggleMarkedWord: (Int, Int) -> Unit,
     emptyList: @Composable () -> Unit,
 ) {
@@ -122,13 +134,17 @@ private fun SentenceList(
     val zone = remember { ZoneId.systemDefault() }
     val visibleSentences = visibleIndices.map(sentences::get)
     LazyColumn(state = listState, contentPadding = listPadding) {
-        itemsIndexed(visibleIndices) { position, index ->
-            dayOpenedAt(visibleSentences, position, zone)?.let { CaptureDayLabel(it) }
-            SentenceRow(
-                sentences[index], isSelecting, index in selection.value,
-                onToggleSelected = { selection.value = toggledSelection(selection.value, index) },
-                onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
-            )
+        // Keyed by text, unique in the list, so a row's swipe state never passes to the row that takes its place
+        itemsIndexed(visibleIndices, key = { _, index -> sentences[index].text }) { position, index ->
+            Column(Modifier.animateItem()) {
+                dayOpenedAt(visibleSentences, position, zone)?.let { CaptureDayLabel(it) }
+                SentenceRow(
+                    sentences[index], isSelecting, index in selection.value,
+                    onToggleSelected = { selection.value = toggledSelection(selection.value, index) },
+                    onToggleWord = { wordIndex -> onToggleMarkedWord(index, wordIndex) },
+                    onSwipeDelete = { onSwipeDelete(index) },
+                )
+            }
         }
     }
 }

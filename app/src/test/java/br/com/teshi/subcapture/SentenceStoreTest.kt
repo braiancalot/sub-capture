@@ -98,6 +98,29 @@ class SentenceStoreTest {
     }
 
     @Test
+    fun `restore puts a deleted line back at its position with its marked words`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
+        sentenceStore.toggleMarkedWord(index = 1, wordIndex = 0)
+        val deleted = sentenceStore.sentences.value[1]
+        sentenceStore.removeAll(setOf(1))
+
+        sentenceStore.restore(deleted, index = 1)
+
+        assertEquals(listOf("third", "second", "first"), savedTexts())
+        assertEquals(setOf(0), SentenceStore(sentencesFile).sentences.value[1].markedWordIndices)
+    }
+
+    @Test
+    fun `restore puts the line last when the list got shorter meanwhile`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+
+        sentenceStore.restore(CapturedSentence("first", 1000), index = 3)
+
+        assertEquals(listOf("first"), savedTexts())
+    }
+
+    @Test
     fun `markSent flags the lines with those texts and persists it`() {
         val sentenceStore = SentenceStore(sentencesFile)
         listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }

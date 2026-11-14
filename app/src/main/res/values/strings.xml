@@ -11,6 +11,8 @@
   <string name="day_yesterday">Yesterday</string>
   <string name="delete_selected">Delete selected</string>
   <string name="mark_selected_sent">Mark selected as sent</string>
+  <string name="sentence_deleted">Sentence deleted</string>
+  <string name="undo">Undo</string>
   <string name="selection_clear">Clear selection</string>
   <string name="selection_send">Send</string>
   <string name="spreadsheet_sentences_sent">Sentences sent: %1$d</string>

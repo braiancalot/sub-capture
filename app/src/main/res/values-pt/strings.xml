@@ -8,6 +8,8 @@
   <string name="day_yesterday">Ontem</string>
   <string name="delete_selected">Apagar selecionadas</string>
   <string name="mark_selected_sent">Marcar selecionadas como enviadas</string>
+  <string name="sentence_deleted">Frase apagada</string>
+  <string name="undo">Desfazer</string>
   <string name="selection_clear">Limpar seleção</string>
   <string name="selection_send">Enviar</string>
   <string name="spreadsheet_sentences_sent">Frases enviadas: %1$d</string>

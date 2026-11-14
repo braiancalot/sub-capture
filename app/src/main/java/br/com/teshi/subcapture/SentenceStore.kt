@@ -35,6 +35,12 @@ class SentenceStore(private val sentencesFile: File) {
         })
     }
 
+    fun restore(sentence: CapturedSentence, index: Int) {
+        val restored = newestFirstSentences.value.toMutableList()
+        restored.add(index.coerceAtMost(restored.size), sentence)
+        replaceWith(restored)
+    }
+
     fun removeAll(indices: Set<Int>) {
         replaceWith(newestFirstSentences.value.filterIndexed { position, _ -> position !in indices })
     }
