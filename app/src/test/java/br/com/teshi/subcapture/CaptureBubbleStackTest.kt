@@ -30,6 +30,17 @@ class CaptureBubbleStackTest {
     }
 
     @Test
+    fun `a repeated tap that added the line again takes the place of the earlier bubble`() {
+        val firstTap = CaptureBubble("same", isFailure = false, addedSentence = CapturedSentence("same", 1000))
+        val secondTap = CaptureBubble("same", isFailure = false, addedSentence = CapturedSentence("same", 2000))
+
+        val stack = listOf(firstTap, bubble("other"), secondTap).fold(emptyList(), ::pushedCaptureBubble)
+
+        assertEquals(listOf("same", "other"), stack.map { it.message })
+        assertEquals(true, stack.first() === secondTap)
+    }
+
+    @Test
     fun `removes only the discarded bubble`() {
         val kept = bubble("kept")
         val discarded = bubble("discarded")
