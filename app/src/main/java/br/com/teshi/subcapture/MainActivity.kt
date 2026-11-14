@@ -11,6 +11,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +42,9 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun CurrentScreen() {
-        if (isShowingSettings.value) SettingsScreenOfApp() else SentenceListScreenOfApp()
+        AnimatedContent(isShowingSettings.value, transitionSpec = { quickCrossfade() }, label = "screen") { isSettings ->
+            if (isSettings) SettingsScreenOfApp() else SentenceListScreenOfApp()
+        }
     }
 
     @Composable

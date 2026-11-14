@@ -1,5 +1,7 @@
 package br.com.teshi.subcapture
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -36,8 +39,9 @@ fun SentenceRow(
 ) {
     val onTapRow = { if (isSelecting) onToggleSelected() }
     val onTapWord = { wordIndex: Int? -> if (isSelecting) onToggleSelected() else wordIndex?.let(onToggleWord) ?: Unit }
+    val tintAlpha by animateFloatAsState(if (isSelected) 1f else 0f, tween(150), label = "selectionTint")
     val rowModifier = Modifier.fillMaxWidth().background(AppBackground).clip(RowShape)
-        .selectionTint(isSelected)
+        .selectionTint(tintAlpha)
         // No ripple: the padding around the text took it, while the text itself shows none
         .combinedClickable(
             interactionSource = null,
@@ -53,9 +57,9 @@ fun SentenceRow(
     }
 }
 
-private fun Modifier.selectionTint(isSelected: Boolean): Modifier = drawBehind {
-    if (!isSelected) return@drawBehind
+private fun Modifier.selectionTint(tintAlpha: Float): Modifier = drawBehind {
+    if (tintAlpha == 0f) return@drawBehind
     val inset = RowTintInset.toPx()
     val tintSize = Size(size.width, size.height - 2 * inset)
-    drawRoundRect(SelectedRowSurface, Offset(0f, inset), tintSize, CornerRadius(rowCornerRadius.toPx()))
+    drawRoundRect(SelectedRowSurface, Offset(0f, inset), tintSize, CornerRadius(rowCornerRadius.toPx()), alpha = tintAlpha)
 }

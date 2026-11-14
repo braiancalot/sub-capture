@@ -1,5 +1,6 @@
 package br.com.teshi.subcapture
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,10 +32,11 @@ fun MarkableSentenceText(
 ) {
     val words = remember(sentence.text) { sentenceWordsOf(sentence.text) }
     val textLayout = remember { mutableStateOf<TextLayoutResult?>(null) }
+    val lineAlpha by animateFloatAsState(if (sentence.isSentToSpreadsheet) SENT_LINE_ALPHA else 1f, label = "sentLine")
     val onTapAt = { position: Offset -> onTapWord(tappedWordIndex(textLayout.value, words, position)) }
     Text(
         text = markedSentenceText(sentence, words),
-        modifier = modifier.alpha(if (sentence.isSentToSpreadsheet) SENT_LINE_ALPHA else 1f)
+        modifier = modifier.alpha(lineAlpha)
             .tapAndLongPress(onTapAt, onLongPress),
         fontSize = 18.sp,
         lineHeight = 28.sp,

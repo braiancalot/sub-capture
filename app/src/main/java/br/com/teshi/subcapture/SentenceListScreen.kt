@@ -4,11 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -16,20 +13,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import java.time.ZoneId
 
 private val listGutter = ScreenGutter - RowTintOverhang
@@ -53,70 +43,46 @@ fun SentenceListScreen(
     val selection = remember(sentences) { mutableStateOf(emptySet<Int>()) }
     BackHandler(enabled = selection.value.isNotEmpty()) { selection.value = emptySet() }
     val filterState = remember { SentenceFilterState() }
-    val listState = rememberLazyListState()
-    val visibleIndices = visibleSentenceIndices(sentences, filterState.unmarkedFilter.value)
     val snackbarHostState = remember { SnackbarHostState() }
-    val deleteWithUndo = rememberUndoableDelete(snackbarHostState, onDelete = { index ->
-        val deleted = sentences[index]
-        filterState.beforeDelete(sentences, setOf(index))
-        onDeleteSentences(setOf(index))
-        deleted
-    }, onRestore = onRestoreSentence)
+    val deleteSentences = { indices: Set<Int> ->
+        filterState.beforeDelete(sentences, indices)
+        onDeleteSentences(indices)
+    }
+    val deleteWithUndo = rememberUndoableDelete(snackbarHostState, onRestoreSentence) { index ->
+        sentences[index].also { deleteSentences(setOf(index)) }
+    }
     Scaffold { innerPadding ->
         // The buttons float over the list: a Scaffold bottomBar cut the list in a straight line
         Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
             Column(Modifier.fillMaxSize()) {
-                ScreenTopBar(selection, onOpenSettings, onMarkSentencesSent) { indices ->
-                    filterState.beforeDelete(sentences, indices)
-                    onDeleteSentences(indices)
-                }
-                SentenceFilterBar(sentences, filterState, selection, listState)
-                SentenceList(sentences, visibleIndices, selection, listState, deleteWithUndo, { index, wordIndex ->
-                    filterState.beforeToggleWord(sentences, index)
-                    onToggleMarkedWord(index, wordIndex)
-                }) {
-                    EmptyListMessage(isOverlayRunning)
-                }
+                SentenceListTopBar(selection, onOpenSettings, onMarkSentencesSent, deleteSentences)
+                FilteredSentenceList(sentences, filterState, selection, isOverlayRunning, deleteWithUndo, onToggleMarkedWord)
             }
-            val snackbarModifier = Modifier.align(Alignment.BottomCenter).padding(bottom = ScreenFabClearance)
-            UndoDeleteSnackbarHost(snackbarHostState, snackbarModifier)
-            Box(Modifier.align(Alignment.BottomEnd)) {
-                if (selection.value.isEmpty()) return@Box CaptureToggleFab(isOverlayRunning, onToggleCapture)
-                SendSelectionButton(isSendingToSpreadsheet, onSend = { onSendSelection(selection.value) })
-            }
+            UndoDeleteSnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(bottom = ScreenFabClearance))
+            val onSend = { onSendSelection(selection.value) }
+            SentenceListFab(selection.value.isEmpty(), isOverlayRunning, isSendingToSpreadsheet, onToggleCapture, onSend)
         }
     }
 }
 
 @Composable
-private fun ScreenTopBar(
+private fun FilteredSentenceList(
+    sentences: List<CapturedSentence>,
+    filterState: SentenceFilterState,
     selection: MutableState<Set<Int>>,
-    onOpenSettings: () -> Unit,
-    onMarkSentencesSent: (Set<Int>) -> Unit,
-    onDeleteSentences: (Set<Int>) -> Unit,
+    isOverlayRunning: Boolean,
+    onSwipeDelete: (Int) -> Unit,
+    onToggleMarkedWord: (Int, Int) -> Unit,
 ) {
-    if (selection.value.isEmpty()) return ScreenHeader(onOpenSettings)
-    SelectionTopBar(
-        selectedCount = selection.value.size,
-        onClear = { selection.value = emptySet() },
-        onMarkSent = { onMarkSentencesSent(selection.value) },
-        onDelete = { onDeleteSentences(selection.value) },
-    )
-}
-
-@Composable
-private fun ScreenHeader(onOpenSettings: () -> Unit) {
-    val plainPart = stringResource(R.string.wordmark_plain_part)
-    val accentPart = stringResource(R.string.wordmark_accent_part)
-    val wordmark = buildAnnotatedString {
-        append(plainPart)
-        withStyle(SpanStyle(color = AccentLavender)) { append(accentPart) }
+    val listState = rememberLazyListState()
+    SentenceFilterBar(sentences, filterState, selection, listState)
+    val visibleIndices = visibleSentenceIndices(sentences, filterState.unmarkedFilter.value)
+    val toggleWord = { index: Int, wordIndex: Int ->
+        filterState.beforeToggleWord(sentences, index)
+        onToggleMarkedWord(index, wordIndex)
     }
-    val headerModifier = Modifier.fillMaxWidth().height(ScreenTopBarHeight).padding(start = ScreenGutter, end = 8.dp)
-    Row(headerModifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(wordmark, Modifier.weight(1f), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        TopBarIconButton(R.drawable.icon_settings, R.string.settings_title, SecondaryText, onOpenSettings)
-    }
+    val emptyListMessage: @Composable () -> Unit = { EmptyListMessage(isOverlayRunning) }
+    SentenceList(sentences, visibleIndices, selection, listState, onSwipeDelete, toggleWord, emptyListMessage)
 }
 
 @Composable

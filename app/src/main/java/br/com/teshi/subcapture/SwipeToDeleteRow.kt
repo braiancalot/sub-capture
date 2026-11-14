@@ -32,15 +32,7 @@ private const val DELETE_THRESHOLD_FRACTION = 0.4f
 
 @Composable
 fun SwipeToDeleteRow(isEnabled: Boolean, onDelete: () -> Unit, content: @Composable RowScope.() -> Unit) {
-    val density = LocalDensity.current
-    // Not saveable: the list restores saved state by key, so an undone delete came back already swiped away
-    val swipeState = remember {
-        SwipeToDismissBoxState(
-            SwipeToDismissBoxValue.Settled,
-            density,
-            positionalThreshold = { totalDistance: Float -> totalDistance * DELETE_THRESHOLD_FRACTION },
-        )
-    }
+    val swipeState = rememberSwipeToDeleteState()
     VibrateOnThresholdCrossing(swipeState)
     SwipeToDismissBox(
         state = swipeState,
@@ -53,6 +45,19 @@ fun SwipeToDeleteRow(isEnabled: Boolean, onDelete: () -> Unit, content: @Composa
         onDismiss = { onDelete() },
         content = content,
     )
+}
+
+@Composable
+private fun rememberSwipeToDeleteState(): SwipeToDismissBoxState {
+    val density = LocalDensity.current
+    // Not saveable: the list restores saved state by key, so an undone delete came back already swiped away
+    return remember {
+        SwipeToDismissBoxState(
+            SwipeToDismissBoxValue.Settled,
+            density,
+            positionalThreshold = { totalDistance: Float -> totalDistance * DELETE_THRESHOLD_FRACTION },
+        )
+    }
 }
 
 @Composable
