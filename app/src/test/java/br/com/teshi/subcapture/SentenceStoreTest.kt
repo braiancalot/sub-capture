@@ -98,26 +98,39 @@ class SentenceStoreTest {
     }
 
     @Test
-    fun `restore puts a deleted line back at its position with its marked words`() {
+    fun `restore puts a deleted line back by its capture time, with its marked words`() {
         val sentenceStore = SentenceStore(sentencesFile)
-        listOf("first", "second", "third").forEach { sentenceStore.prepend(it, capturedAtMillis = 1000) }
-        sentenceStore.toggleMarkedWord(index = 1, wordIndex = 0)
-        val deleted = sentenceStore.sentences.value[1]
-        sentenceStore.removeAll(setOf(1))
+        listOf("first", "second", "third", "fourth").forEachIndexed { position, text ->
+            sentenceStore.prepend(text, capturedAtMillis = 1000L * (position + 1))
+        }
+        sentenceStore.toggleMarkedWord(index = 2, wordIndex = 0)
+        val deleted = sentenceStore.sentences.value[2]
+        sentenceStore.removeAll(setOf(2, 0))
 
-        sentenceStore.restore(deleted, index = 1)
+        sentenceStore.restore(deleted)
 
         assertEquals(listOf("third", "second", "first"), savedTexts())
         assertEquals(setOf(0), SentenceStore(sentencesFile).sentences.value[1].markedWordIndices)
     }
 
     @Test
-    fun `restore puts the line last when the list got shorter meanwhile`() {
+    fun `restore puts the oldest line last`() {
         val sentenceStore = SentenceStore(sentencesFile)
+        sentenceStore.prepend("newer", capturedAtMillis = 2000)
 
-        sentenceStore.restore(CapturedSentence("first", 1000), index = 3)
+        sentenceStore.restore(CapturedSentence("older", 1000))
 
-        assertEquals(listOf("first"), savedTexts())
+        assertEquals(listOf("newer", "older"), savedTexts())
+    }
+
+    @Test
+    fun `restore ignores a line whose text was captured again meanwhile`() {
+        val sentenceStore = SentenceStore(sentencesFile)
+        sentenceStore.prepend("first", capturedAtMillis = 2000)
+
+        sentenceStore.restore(CapturedSentence("first", 1000))
+
+        assertEquals(listOf(CapturedSentence("first", 2000)), sentenceStore.sentences.value)
     }
 
     @Test

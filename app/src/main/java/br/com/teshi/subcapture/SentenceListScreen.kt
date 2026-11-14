@@ -43,7 +43,7 @@ fun SentenceListScreen(
     isSendingToSpreadsheet: Boolean,
     onToggleCapture: () -> Unit,
     onDeleteSentences: (Set<Int>) -> Unit,
-    onRestoreSentence: (CapturedSentence, Int) -> Unit,
+    onRestoreSentence: (CapturedSentence) -> Unit,
     onMarkSentencesSent: (Set<Int>) -> Unit,
     onToggleMarkedWord: (Int, Int) -> Unit,
     onSendSelection: (Set<Int>) -> Unit,

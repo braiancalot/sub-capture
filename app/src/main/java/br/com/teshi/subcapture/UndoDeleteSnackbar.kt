@@ -29,8 +29,8 @@ fun UndoDeleteSnackbarHost(hostState: SnackbarHostState, modifier: Modifier) {
 @Composable
 fun rememberUndoableDelete(
     hostState: SnackbarHostState,
+    onRestore: (CapturedSentence) -> Unit,
     onDelete: (Int) -> CapturedSentence,
-    onRestore: (CapturedSentence, Int) -> Unit,
 ): (Int) -> Unit {
     val snackbarScope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.sentence_deleted)
@@ -41,7 +41,7 @@ fun rememberUndoableDelete(
             // A newer delete takes over the snackbar: only the last one can be undone
             hostState.currentSnackbarData?.dismiss()
             val result = hostState.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Short)
-            if (result == SnackbarResult.ActionPerformed) onRestore(deleted, index)
+            if (result == SnackbarResult.ActionPerformed) onRestore(deleted)
         }
     }
 }
