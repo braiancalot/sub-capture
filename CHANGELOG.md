@@ -5,6 +5,29 @@ What changed for someone using the app, newest first. The format follows
 [Semantic Versioning](https://semver.org/). The release workflow publishes each version's section
 as the notes of its GitHub Release.
 
+## [2.13.0] - 2026-11-14
+
+### Added
+
+- Swipe a sentence to the left to delete it. Past a certain point the background turns coral and
+  the phone ticks, so you know letting go will delete it. A message at the bottom lets you undo.
+- Selected sentences can be marked as sent without sending them, for sentences that already reached
+  the spreadsheet some other way.
+- Each capture over the video now gets its own bubble, up to three stacked, newest on top, and they
+  stay 5 seconds after the last tap. Each bubble has an X that removes that sentence from the list,
+  so a wrong capture can be thrown away right there.
+
+### Changed
+
+- The list reads more easily: no lines between sentences, more space between one sentence and the
+  next, day labels without the year and the count, and marked words in color only.
+- Short animations when switching screens, starting and ending a selection, selecting a sentence
+  and marking it as sent, and on the bubbles over the video.
+- Dragging the floating button to the close circle makes the circle grow and the phone tick when
+  the button is over it.
+- The spreadsheet fills sentences with a newer Gemini model, and falls back to a lighter one
+  instead of failing when Gemini is busy.
+
 ## [2.12.1] - 2026-10-31
 
 ### Changed
